@@ -1,0 +1,22 @@
+----- UI controlleur du gameinstance
+
+----- Comportements quand il reste 1 ou 0 joueurs(bots y compris)
+
+----- Redéfinir le design
+
+----- Imaginer les scénatios interessants à implémenter
+	---- Auto générer des résistances à des intervalles très rare (ajouter ces résistances à la team 3+3 === 6)
+	---- Créer d'autres formes de Bullets
+	---- Récompenser d'une manière les MainPlayers kan un bot est mort. Un autre bot peut également récupérer cette récompense
+
+--- Intégrer les levels (Level 1, 2, 3, ...) avec leurs difficultés [et leurs meutes de terminaison]
+
+--- Déssiner les bordures (jsai pa nkr cmt le faire, des carreaux pleins ou à leurs bordures ?)
+
+-- Configurer le GameInstance
+	- Pseudo du gamer
+	- Mode Arcade avec les levels progressifs
+  - Mode Survivant avec courage ;)
+	- Mode Masochisme avec beaucoup plus de courage ;)
+	- Sauvegarder mon évolution
+

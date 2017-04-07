@@ -5,9 +5,10 @@ import Bullet from './Bullet.js'
 import BaseConfig from './BaseConfig.js'
 
 let _positions = []
+let isLocked = false
 let xs = 0
 let ys = 0
-const releaseBots = true
+const releaseBots = false
 
 export default class Player {
   constructor (gameInstanceP, playerIdP, teamP, containerP, isBotP) {
@@ -18,11 +19,11 @@ export default class Player {
     this.isBot = isBotP
     this.resistance = this.team.resistance
     this.regenerateResistanceTimer = null
-    this.randomActionsTimerInterval = Functions.rand(1000, 1000)
+    this.randomActionsTimerInterval = Functions.rand(500, 500)
     this.botsActions = [
-      BaseConfig.ACTIONS.ROTATE, BaseConfig.ACTIONS.ROTATE, BaseConfig.ACTIONS.ROTATE,
-      BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT,
-      BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE
+      BaseConfig.ACTIONS.ROTATE,
+      BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT,
+      BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE
     ]
 
     this.w = 40
@@ -31,12 +32,107 @@ export default class Player {
     this.fH = this.h + 5
     this.crop = (this.w * 30) / 100
     this.face = BaseConfig.ROTATEMAP[Functions.rand(0, BaseConfig.ROTATEMAP.length - 1)]
+    this.moveCallbacks = []
 
     if (!this.isBot) {
       this.score = 0
     }
 
     this._draw()
+  }
+
+  updateScore (pts) {
+    if (!this.isBot && pts > 0) {
+      this.score += parseInt(pts)
+    }
+  }
+
+  onMove (callback) {
+    return this.moveCallbacks.push(callback)
+  }
+
+  offMove (index) {
+    this.moveCallbacks = Functions.removeAt(this.moveCallbacks, (index - 1))
+  }
+
+  freeze () {
+    clearInterval(this.randomActionsTimer)
+  }
+
+  unfreeze () {
+    if (this.isBot) {
+      this._inflateBotCapabilities()
+    }
+  }
+
+  getFace () {
+    return this.face
+  }
+
+  moveTo (xP, yP) {
+    if (_positions.indexOf(xP + ':' + yP) === -1 && (xP !== -1 && yP !== -1) && (xP !== xs && yP !== ys)) {
+      this._delAndUpdatePosition(xP, yP)
+      if (this.moveCallbacks) {
+        this._runCallbacks(this.moveCallbacks, this.getPosition())
+      }
+    }
+  }
+
+  _delAndUpdatePosition (xP, yP) {
+    if (!isLocked) {
+      isLocked = true
+
+      _positions = Functions.removeAt(_positions, _positions.indexOf(this.x + ':' + this.y))
+      this._updatePosition(xP, yP)
+
+      isLocked = false
+    } else {
+      isLocked = true
+    }
+  }
+
+  _updatePosition (xP, yP) {
+    this.x = xP
+    this.y = yP
+
+    _positions.push(this.x + ':' + this.y)
+
+    this.el.style.left = (this.x * this.fW) + 'px'
+    this.el.style.top = (this.y * this.fH) + 'px'
+  }
+
+  rotate (deg) {
+    if (BaseConfig.ROTATEMAP.indexOf(deg) > -1) {
+      this.face = deg
+      this._updateFace()
+    }
+  }
+
+  getPosition () {
+    return {
+      x: this.x,
+      y: this.y
+    }
+  }
+
+  shootPrimary () {
+    new Bullet('BULLET_' + this.playerId + '_001', this.container, this).acheminate()
+  }
+
+  getPunched (BulletInstance) {
+    BulletInstance.inhibe()
+    if (this.resistance !== BaseConfig.IMMORTAL_PLAYER_RESISTANCE) {
+      if (--this.resistance === 0) {
+        this._destroy()
+        return true
+      } else {
+        this._punched()
+        if (this.isBot) {
+          this._injectRecoveryMode(BulletInstance)
+        }
+        return false
+      }
+    }
   }
 
   _smartPosition (xs, ys) {
@@ -51,9 +147,8 @@ export default class Player {
   }
 
   _draw () {
-    let containerRect = this.container.getBoundingClientRect()
-    xs = containerRect.width / this.fW
-    ys = containerRect.height / this.fH
+    xs = Functions.pxToNumber(this.container.style.width) / this.fW
+    ys = Functions.pxToNumber(this.container.style.height) / this.fH
     let smartPosition = this._smartPosition(xs, ys)
 
     this.el = document.createElement('canvas')
@@ -98,16 +193,16 @@ export default class Player {
             PlayerInstance.shootPrimary()
             break
           case BaseConfig.ACTIONS.MOVE:
-            if (actionParam === 0) {
+            if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.TOP)) {
               PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y - 1))
               PlayerInstance.rotate(BaseConfig.DIRECTIONS.TOP)
-            } else if (actionParam === 1) {
+            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.RIGHT)) {
               PlayerInstance.moveTo((PlayerInstance.getPosition().x + 1), PlayerInstance.getPosition().y)
               PlayerInstance.rotate(BaseConfig.DIRECTIONS.RIGHT)
-            } else if (actionParam === 2) {
+            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.BOTTOM)) {
               PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y + 1))
               PlayerInstance.rotate(BaseConfig.DIRECTIONS.BOTTOM)
-            } else if (actionParam === 3) {
+            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.LEFT)) {
               PlayerInstance.moveTo((PlayerInstance.getPosition().x - 1), PlayerInstance.getPosition().y)
               PlayerInstance.rotate(BaseConfig.DIRECTIONS.LEFT)
             }
@@ -125,15 +220,6 @@ export default class Player {
 
       PlayerInstance.randomActionsTimer = setInterval(__run, PlayerInstance.randomActionsTimerInterval)
     }
-  }
-
-  _updatePosition (xP, yP) {
-    this.x = xP
-    this.y = yP
-    this.el.style.left = (this.x * this.fW) + 'px'
-    this.el.style.top = (this.y * this.fH) + 'px'
-
-    _positions.push(this.x + ':' + this.y)
   }
 
   _updateFace () {
@@ -154,27 +240,29 @@ export default class Player {
   }
 
   _refreshResistanceEffects () {
-    this.el.style.opacity = (this.resistance * 1) / this.team.resistance
+    if (this.resistance >= 0 && this.resistance !== BaseConfig.IMMORTAL_PLAYER_RESISTANCE) {
+      this.el.style.opacity = (this.resistance * 1) / this.team.resistance
+    }
   }
 
   _injectRecoveryMode (BulletInstance) {
     let dangerDirection = BaseConfig.ROTATEMAP[((BaseConfig.ROTATEMAP.indexOf(BulletInstance.direction) + 2) % BaseConfig.ROTATEMAP.length)]
-    let safeZone = BaseConfig.ROTATEMAP[((BaseConfig.ROTATEMAP.indexOf(dangerDirection) + 1) % BaseConfig.ROTATEMAP.length)]
+    let safeZone = BaseConfig.ROTATEMAP[((BaseConfig.ROTATEMAP.indexOf(dangerDirection) + Functions.randInArray([-1, 1])) % BaseConfig.ROTATEMAP.length)]
     this.rotate(safeZone)
-    /* switch (safeZone) {
+    switch (safeZone) {
       case BaseConfig.DIRECTIONS.TOP:
-        this.moveTo(this.getPosition().x, (this.getPosition().y - 1))
+        this.moveTo(this.getPosition().x, (this.getPosition().y - Functions.randInArray([1, 2, 3])))
         break
       case BaseConfig.DIRECTIONS.RIGHT:
-        this.moveTo((this.getPosition().x + 1), this.getPosition().y)
+        this.moveTo((this.getPosition().x + Functions.randInArray([1, 2, 3])), this.getPosition().y)
         break
       case BaseConfig.DIRECTIONS.BOTTOM:
-        this.moveTo(this.getPosition(), (this.getPosition().y + 1))
+        this.moveTo(this.getPosition(), (this.getPosition().y + Functions.randInArray([1, 2, 3])))
         break
       case BaseConfig.DIRECTIONS.LEFT:
-        this.moveTo((this.getPosition().x - 1), this.getPosition().y)
+        this.moveTo((this.getPosition().x - Functions.randInArray([1, 2, 3])), this.getPosition().y)
         break
-    } */
+    }
     this.freeze()
     this.randomActionsTimerInterval = Functions.rand(0, 1)
     this.botsActions = [
@@ -213,64 +301,9 @@ export default class Player {
     }, BaseConfig.TIME_TO_REGENERATE_RESISTANCE)
   }
 
-  updateScore (pts) {
-    if (!this.isBot && pts > 0) {
-      this.score += parseInt(pts)
-    }
-  }
-
-  freeze () {
-    clearInterval(this.randomActionsTimer)
-  }
-
-  unfreeze () {
-    if (this.isBot) {
-      this._inflateBotCapabilities()
-    }
-  }
-
-  getFace () {
-    return this.face
-  }
-
-  moveTo (xP, yP) {
-    if (_positions.indexOf(xP + ':' + yP) === -1 && (xP !== -1 && yP !== -1) && (xP !== xs && yP !== ys)) {
-      _positions = Functions.removeAt(_positions, _positions.indexOf(this.x + ':' + this.y))
-      this.x = xP
-      this.y = yP
-      this._updatePosition(this.x, this.y)
-    }
-  }
-
-  rotate (deg) {
-    if (BaseConfig.ROTATEMAP.indexOf(deg) > -1) {
-      this.face = deg
-      this._updateFace()
-    }
-  }
-
-  getPosition () {
-    return {
-      x: this.x,
-      y: this.y
-    }
-  }
-
-  shootPrimary () {
-    new Bullet('BULLET_' + this.playerId + '_001', this.container, this).acheminate()
-  }
-
-  getPunched (BulletInstance) {
-    BulletInstance.inhibe()
-    if (--this.resistance === 0) {
-      this._destroy()
-      return true
-    } else {
-      this._punched()
-      if (this.isBot) {
-        this._injectRecoveryMode(BulletInstance)
-      }
-      return false
-    }
+  _runCallbacks (callbacks) {
+    callbacks.forEach((callback, index) => {
+      callback(arguments[1])
+    })
   }
 }

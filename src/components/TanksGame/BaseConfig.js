@@ -1,4 +1,18 @@
 export default {
+  DIMENS: {
+    WIDTH: 600,
+    HEIGHT: 600,
+    SQUARE: 50
+  },
+  GAME_MODES: ['Arcade', 'Survivant', 'Masochiste'],
+  COLORS: {
+    RED: '#F44336',
+    GREEN: '#66BB6A',
+    YELLOW: '#FFEB3B',
+    BULLET: '#F9A825',
+    PLAYER_COLOR: '#039BE5',
+    PROTECTOR_COLOR: 'rgba(0, 0, 0, .1)'
+  },
   SHOOTEFFECTS: {
     DECREASE_LIFE: 1
   },
@@ -22,5 +36,7 @@ export default {
     ROTATE: 2,
     SHOOT: 3
   },
-  TIME_TO_REGENERATE_RESISTANCE: 2000
+  TIME_TO_REGENERATE_RESISTANCE: 500,
+  TIME_FOR_PROTECT_AT_START: 500,
+  IMMORTAL_PLAYER_RESISTANCE: 9999
 }
