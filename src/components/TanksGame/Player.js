@@ -6,9 +6,10 @@ import BaseConfig from './BaseConfig.js'
 
 let _positions = []
 let isLocked = false
-let xs = 0
-let ys = 0
-const releaseBots = false
+let xMax = 0
+let yMax = 0
+
+const releaseBots = true
 
 export default class Player {
   constructor (gameInstanceP, playerIdP, teamP, containerP, isBotP) {
@@ -20,6 +21,8 @@ export default class Player {
     this.resistance = this.team.resistance
     this.regenerateResistanceTimer = null
     this.randomActionsTimerInterval = Functions.rand(500, 500)
+    this.recoveryMode = false
+    this.afterRecoveryModeTimer = null
     this.botsActions = [
       BaseConfig.ACTIONS.ROTATE,
       BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT,
@@ -70,35 +73,12 @@ export default class Player {
   }
 
   moveTo (xP, yP) {
-    if (_positions.indexOf(xP + ':' + yP) === -1 && (xP !== -1 && yP !== -1) && (xP !== xs && yP !== ys)) {
+    if (_positions.indexOf(xP + ':' + yP) === -1 && (xP > -1 && yP > -1) && (xP < xMax && yP < yMax)) {
       this._delAndUpdatePosition(xP, yP)
       if (this.moveCallbacks) {
         this._runCallbacks(this.moveCallbacks, this.getPosition())
       }
     }
-  }
-
-  _delAndUpdatePosition (xP, yP) {
-    if (!isLocked) {
-      isLocked = true
-
-      _positions = Functions.removeAt(_positions, _positions.indexOf(this.x + ':' + this.y))
-      this._updatePosition(xP, yP)
-
-      isLocked = false
-    } else {
-      isLocked = true
-    }
-  }
-
-  _updatePosition (xP, yP) {
-    this.x = xP
-    this.y = yP
-
-    _positions.push(this.x + ':' + this.y)
-
-    this.el.style.left = (this.x * this.fW) + 'px'
-    this.el.style.top = (this.y * this.fH) + 'px'
   }
 
   rotate (deg) {
@@ -135,21 +115,44 @@ export default class Player {
     }
   }
 
-  _smartPosition (xs, ys) {
-    let x = Functions.rand(1, (xs - 1))
-    let y = Functions.rand(1, (ys - 1))
+  _delAndUpdatePosition (xP, yP) {
+    if (!isLocked) {
+      isLocked = true
+
+      _positions = Functions.removeAt(_positions, _positions.indexOf(this.x + ':' + this.y))
+      this._updatePosition(xP, yP)
+
+      isLocked = false
+    } else {
+      isLocked = true
+    }
+  }
+
+  _updatePosition (xP, yP) {
+    this.x = xP
+    this.y = yP
+
+    _positions.push(this.x + ':' + this.y)
+
+    this.el.style.left = (this.x * this.fW) + 'px'
+    this.el.style.top = (this.y * this.fH) + 'px'
+  }
+
+  _smartPosition () {
+    let x = Functions.rand(1, (xMax - 1))
+    let y = Functions.rand(1, (yMax - 1))
 
     if (_positions.indexOf(x + ':' + y) > -1) {
-      return this._smartPosition(xs, ys)
+      return this._smartPosition()
     } else {
       return [x, y]
     }
   }
 
   _draw () {
-    xs = Functions.pxToNumber(this.container.style.width) / this.fW
-    ys = Functions.pxToNumber(this.container.style.height) / this.fH
-    let smartPosition = this._smartPosition(xs, ys)
+    xMax = Functions.pxToNumber(this.container.style.width) / this.fW
+    yMax = Functions.pxToNumber(this.container.style.height) / this.fH
+    let smartPosition = this._smartPosition()
 
     this.el = document.createElement('canvas')
     this.el.width = this.w
@@ -183,30 +186,32 @@ export default class Player {
       PlayerInstance.randomActionsTimer = null
 
       let __run = () => {
-        // Do action
-        let actionParam = Functions.rand(0, BaseConfig.ROTATEMAP.length)
-        switch (PlayerInstance.botsActions[actionId]) {
-          case BaseConfig.ACTIONS.ROTATE:
-            PlayerInstance.rotate(BaseConfig.ROTATEMAP[actionParam])
-            break
-          case BaseConfig.ACTIONS.SHOOT:
-            PlayerInstance.shootPrimary()
-            break
-          case BaseConfig.ACTIONS.MOVE:
-            if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.TOP)) {
-              PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y - 1))
-              PlayerInstance.rotate(BaseConfig.DIRECTIONS.TOP)
-            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.RIGHT)) {
-              PlayerInstance.moveTo((PlayerInstance.getPosition().x + 1), PlayerInstance.getPosition().y)
-              PlayerInstance.rotate(BaseConfig.DIRECTIONS.RIGHT)
-            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.BOTTOM)) {
-              PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y + 1))
-              PlayerInstance.rotate(BaseConfig.DIRECTIONS.BOTTOM)
-            } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.LEFT)) {
-              PlayerInstance.moveTo((PlayerInstance.getPosition().x - 1), PlayerInstance.getPosition().y)
-              PlayerInstance.rotate(BaseConfig.DIRECTIONS.LEFT)
-            }
-            break
+        if (!this.recoveryMode) {
+          // Do action
+          let actionParam = Functions.rand(0, BaseConfig.ROTATEMAP.length)
+          switch (PlayerInstance.botsActions[actionId]) {
+            case BaseConfig.ACTIONS.ROTATE:
+              PlayerInstance.rotate(BaseConfig.ROTATEMAP[actionParam])
+              break
+            case BaseConfig.ACTIONS.SHOOT:
+              PlayerInstance.shootPrimary()
+              break
+            case BaseConfig.ACTIONS.MOVE:
+              if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.TOP)) {
+                PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y - 1))
+                PlayerInstance.rotate(BaseConfig.DIRECTIONS.TOP)
+              } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.RIGHT)) {
+                PlayerInstance.moveTo((PlayerInstance.getPosition().x + 1), PlayerInstance.getPosition().y)
+                PlayerInstance.rotate(BaseConfig.DIRECTIONS.RIGHT)
+              } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.BOTTOM)) {
+                PlayerInstance.moveTo(PlayerInstance.getPosition().x, (PlayerInstance.getPosition().y + 1))
+                PlayerInstance.rotate(BaseConfig.DIRECTIONS.BOTTOM)
+              } else if (actionParam === BaseConfig.ROTATEMAP.indexOf(BaseConfig.DIRECTIONS.LEFT)) {
+                PlayerInstance.moveTo((PlayerInstance.getPosition().x - 1), PlayerInstance.getPosition().y)
+                PlayerInstance.rotate(BaseConfig.DIRECTIONS.LEFT)
+              }
+              break
+          }
         }
 
         // , clear
@@ -246,24 +251,30 @@ export default class Player {
   }
 
   _injectRecoveryMode (BulletInstance) {
+    this.recoveryMode = true
+
     let dangerDirection = BaseConfig.ROTATEMAP[((BaseConfig.ROTATEMAP.indexOf(BulletInstance.direction) + 2) % BaseConfig.ROTATEMAP.length)]
-    let safeZone = BaseConfig.ROTATEMAP[((BaseConfig.ROTATEMAP.indexOf(dangerDirection) + Functions.randInArray([-1, 1])) % BaseConfig.ROTATEMAP.length)]
+    let safeZone = BaseConfig.ROTATEMAP[Functions.randInArray([((BaseConfig.ROTATEMAP.indexOf(dangerDirection) + 1) % BaseConfig.ROTATEMAP.length), ((BaseConfig.ROTATEMAP.indexOf(dangerDirection) + 3) % BaseConfig.ROTATEMAP.length)])]
+    let curPosition = this.getPosition()
+    let step = (this.resistance === 1) ? (Functions.randInArray([1, 2, 3, 4])) : (Functions.randInArray([1, 2]))
+
+    this.freeze()
     this.rotate(safeZone)
+
     switch (safeZone) {
       case BaseConfig.DIRECTIONS.TOP:
-        this.moveTo(this.getPosition().x, (this.getPosition().y - Functions.randInArray([1, 2, 3])))
+        this.moveTo(curPosition.x, (curPosition.y - step))
         break
       case BaseConfig.DIRECTIONS.RIGHT:
-        this.moveTo((this.getPosition().x + Functions.randInArray([1, 2, 3])), this.getPosition().y)
+        this.moveTo((curPosition.x + step), curPosition.y)
         break
       case BaseConfig.DIRECTIONS.BOTTOM:
-        this.moveTo(this.getPosition(), (this.getPosition().y + Functions.randInArray([1, 2, 3])))
+        this.moveTo(curPosition.x, (curPosition.y + step))
         break
       case BaseConfig.DIRECTIONS.LEFT:
-        this.moveTo((this.getPosition().x - Functions.randInArray([1, 2, 3])), this.getPosition().y)
+        this.moveTo((curPosition.x - step), curPosition.y)
         break
     }
-    this.freeze()
     this.randomActionsTimerInterval = Functions.rand(0, 1)
     this.botsActions = [
       BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE,
@@ -271,6 +282,13 @@ export default class Player {
       BaseConfig.ACTIONS.SHOOT
     ]
     this.unfreeze()
+
+    clearTimeout(this.afterRecoveryModeTimer)
+
+    this.afterRecoveryModeTimer = setTimeout(() => {
+      this.recoveryMode = false
+      clearTimeout(this.afterRecoveryModeTimer)
+    }, BaseConfig.TIME_AFTER_RECOVERYMODE)
   }
 
   _injectNormalMode () {

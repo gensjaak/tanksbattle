@@ -119,7 +119,7 @@
 
   #configame header
     height: initial
-    margin: 40px 0
+    margin: 50px 0
     overflow: hidden
     text-align: center
 
@@ -220,7 +220,7 @@
     background-position: 0 0
     margin: 0
     padding: 0
-    overflow: hidden
+    overflow: visible
     transition: all .3s ease-out 0s
 
   #dashboard

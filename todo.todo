@@ -7,7 +7,8 @@
 ----- Imaginer les scénatios interessants à implémenter
 	---- Auto générer des résistances à des intervalles très rare (ajouter ces résistances à la team 3+3 === 6)
 	---- Créer d'autres formes de Bullets
-	---- Récompenser d'une manière les MainPlayers kan un bot est mort. Un autre bot peut également récupérer cette récompense
+  ---- Récompenser d'une manière les MainPlayers kan un bot est mort. Un autre bot peut également récupérer cette récompense
+	---- Implémenter un spirit de Refouler tous pour éloigner tous les bots au tour du MainPlayer avec un effet de Big Protector
 
 --- Intégrer les levels (Level 1, 2, 3, ...) avec leurs difficultés [et leurs meutes de terminaison]
 
@@ -20,3 +21,4 @@
 	- Mode Masochisme avec beaucoup plus de courage ;)
 	- Sauvegarder mon évolution
 
+- After Recovery mode, bot should wait 1000ms before do its randoms actions. Plan to remove this timer and replace by a callback

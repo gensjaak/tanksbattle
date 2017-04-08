@@ -4,7 +4,6 @@
 import Functions from './Functions.js'
 import GStorage from './GStorage.js'
 import BaseConfig from './BaseConfig.js'
-
 import Player from './Player'
 
 let _players = []
