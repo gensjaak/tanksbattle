@@ -2,33 +2,36 @@
 /* eslint-disable no-unused-vars */
 
 import Functions from './Functions.js'
-import GStorage from './GStorage.js'
 import BaseConfig from './BaseConfig.js'
 import Player from './Player'
 
 let _players = []
 let playerMovesAndProtector = 0
 
+const GAME_INSTANCE_KEY = 'gi'
 const PLAYER_PSEUDO_KEY = 'pps'
 const PLAYER_SCORE_KEY = 'psc'
 const PLAYER_EVO_KEY = 'pev'
 const PLAYER_MODE_KEY = 'pmo'
 
 export default class Game {
-  constructor (configP) {
+  constructor (configP, GStorage) {
     this.config = configP
     this.config.el = document.getElementById(this.config.el.toString().trim())
 
     this.config.el.style.width = BaseConfig.DIMENS.WIDTH + 'px'
     this.config.el.style.height = BaseConfig.DIMENS.HEIGHT + 'px'
 
-    if (this.config.backup) {
-      // GStorage.clear()
+    this.Storage = GStorage
 
-      // GStorage.set(PLAYER_PSEUDO_KEY, this.config.player.pseudo)
-      // GStorage.set(PLAYER_SCORE_KEY, 0)
-      // GStorage.set(PLAYER_EVO_KEY, 0)
-      // GStorage.set(PLAYER_MODE_KEY, this.config.mode)
+    if (this.config.backup) {
+      this.Storage.set(GAME_INSTANCE_KEY, this)
+      this.Storage.set(PLAYER_PSEUDO_KEY, this.config.player.pseudo)
+      this.Storage.set(PLAYER_SCORE_KEY, 0)
+      this.Storage.set(PLAYER_EVO_KEY, 0)
+      this.Storage.set(PLAYER_MODE_KEY, this.config.mode)
+    } else {
+      this.Storage.clear()
     }
 
     switch (this.config.mode) {
@@ -115,7 +118,7 @@ export default class Game {
   }
 
   _getPlayerLevels () {
-    return GStorage.get(PLAYER_EVO_KEY) || [0]
+    return this.Storage.get(PLAYER_EVO_KEY) || [0]
   }
 
   _getPlayerLastLevel (levels) {

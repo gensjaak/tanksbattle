@@ -7,7 +7,7 @@ class GStorage {
 
   set (key, val) {
     if (this._Storage.setItem) {
-      this._Storage.setItem(key.trim(), val.trim())
+      this._Storage.setItem(key.trim(), val)
     }
   }
 
@@ -27,6 +27,10 @@ class GStorage {
     if (this._Storage.clear) {
       this._Storage.clear()
     }
+  }
+
+  isEmpty () {
+    return (this._Storage.length > 0) ? (0) : (1)
   }
 }
 

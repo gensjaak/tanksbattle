@@ -9,7 +9,7 @@ let isLocked = false
 let xMax = 0
 let yMax = 0
 
-const releaseBots = true
+const releaseBots = false
 
 export default class Player {
   constructor (gameInstanceP, playerIdP, teamP, containerP, isBotP) {
