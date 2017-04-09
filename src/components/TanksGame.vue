@@ -7,10 +7,14 @@
         <div id="gamename">TanksBattle</div>
         <div id="gameversion"><sup>2.0.0</sup></div>
       </header>
-      <form role="gameConfig" v-show="!showBackupFoundWrapper">
+      <form role="gameConfig">
+        <div class="field-group">
+          <center><label for="">Le jeu sauvegarde automatiquement à chaque progression en fonction du pseudo renseigné.</label></center>
+        </div>
+
         <div class="field-group">
           <label for="pseudo">Ton pseudo</label>
-          <input type="text" name="pseudo" value="" v-model="player.pseudo">
+          <input type="text" name="pseudo" value="" v-model="pseudo">
         </div>
 
         <div class="field-group">
@@ -20,26 +24,9 @@
           </select>
         </div>
 
-        <div class="field-group">
-          <label for="backup">Sauvegarder mon évolution</label>
-          <input type="checkbox" name="backup" v-model="gameBackup">
-        </div>
-
-        <button @click.stop.prevent="startNewGame()">go</button>
+        <button @click.stop.prevent="start()">go</button>
       </form>
-      <div v-show="showBackupFoundWrapper" id="gameBackupFoundWrapper">
-        <p>
-          Une sauvegarde a été trouvée au pseudo de <em>{{ 'phareal' }}</em>.
-          <br>
-          <br>
-          Que voulez-vous faire ?
-        </p>
-        <button @click.stop.prevent="continuegame()" id="continuegame">continuer</button>
-        <br>
-        <button @click.stop.prevent="callNewGameUI()" id="newgame">nouveau jeu</button>
-      </div>
     </section>
-    <!-- <section id="dashboard"></section> -->
   </div>
 </template>
 
@@ -48,7 +35,7 @@
 
   import Game from './TanksGame/Game'
   import BaseConfig from './TanksGame/BaseConfig'
-  import GStorage from './TanksGame/GStorage.js'
+  import GStorage from './TanksGame/GStorage'
 
   export default {
     name: 'TanksGame',
@@ -59,25 +46,12 @@
         GameInstance: null,
         GameModes: BaseConfig.GAME_MODES,
         gameMode: BaseConfig.GAME_MODES[0],
-        gameBackup: true,
         showGameConfig: false,
-        showBackupFoundWrapper: false,
-        player: {
-          pseudo: 'phareal',
-          color: BaseConfig.COLORS.PLAYER_COLOR,
-          resistance: 2
-        },
-        teams: [
-          {
-            color: BaseConfig.COLORS.GREEN,
-            nbPlayers: 1,
-            winPts: 10,
-            resistance: 3
-          }
-        ]
+        pseudo: 'phareal'
       }
     },
     mounted () {
+      // GStorage.clear()
       this._checkStorage()
     },
     methods: {
@@ -90,27 +64,15 @@
           this.showGameConfig = true
         }
       },
-      startNewGame () { // Démarrer un tout nouveau jeu avec la nouvelle configuration
-        if (this.player.pseudo !== '') {
+      start () { // Démarrer un tout nouveau jeu avec la nouvelle configuration
+        if (this.pseudo !== '') {
           this.showGameConfig = false
           this.GameInstance = new Game({
             el: 'maingame',
-            teams: this.teams,
-            player: this.player,
             mode: this.gameMode,
-            backup: this.gameBackup
-          }, GStorage).start().inflateBehaviours()
+            pseudo: this.pseudo
+          }, GStorage)
         }
-      },
-      continuegame () { // Il y a une sauvegarde et il a voulu continuer depuis cette sauvegarde
-        this.showBackupFoundWrapper = false
-        this.showGameConfig = false
-      },
-      callNewGameUI () { // Il y a une sauvegarde mais il a kan mm cliké sur Nouveau Jeu
-        GStorage.clear() // Effacer alors la sauvegarde pour déclencher ensuite...
-        this._checkStorage()
-      },
-      start () {
       },
       pause () {
         this.GameInstance.pause()
@@ -131,6 +93,10 @@
     width: 100%
     height: 100%
     background-color: #F5F5F5
+
+  [disabled]
+    pointer-events: none
+    opacity: .2
 
   #gamewrapper
     display: flex
@@ -281,12 +247,6 @@
     background-position: 0 0
     margin: 0
     padding: 0
-    overflow: visible
+    overflow: hidden
     transition: all .3s ease-out 0s
-
-  #dashboard
-    width: 80px
-    height: 50%
-    background-color: red
-    align-self: center
 </style>

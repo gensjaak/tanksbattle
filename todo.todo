@@ -15,10 +15,16 @@
 --- Déssiner les bordures (jsai pa nkr cmt le faire, des carreaux pleins ou à leurs bordures ?)
 
 -- Configurer le GameInstance
-	- Pseudo du gamer
-	- Mode Arcade avec les levels progressifs
+  - Pseudo du gamer
+  - Mode Arcade avec les levels progressifs
   - Mode Survivant avec courage ;)
-	- Mode Masochisme avec beaucoup plus de courage ;)
-	- Sauvegarder mon évolution
+  - Mode Masochisme avec beaucoup plus de courage ;)
+
+---- Conception de la mini BD
+  --- Pseudo du gamer
+    -- Mode
+      - Score final
+      - Dernier niveau
+    	- Resistance totale
 
 - After Recovery mode, bot should wait 1000ms before do its randoms actions. Plan to remove this timer and replace by a callback

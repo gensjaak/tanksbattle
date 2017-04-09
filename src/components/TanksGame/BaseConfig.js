@@ -6,9 +6,11 @@ export default {
   },
   GAME_MODES: ['Arcade', 'Survivant', 'Masochiste'],
   COLORS: {
-    RED: '#F44336',
-    GREEN: '#66BB6A',
-    YELLOW: '#FFEB3B',
+    RED: '#F44336', // Strong Team color
+    GREEN: '#66BB6A', // Weak Team color
+    YELLOW: '#FFEB3B', // Medium Team color
+    PURPLE: '#3F51B5', // Dont disturb Team color
+    CYAN: '#00ACC1', // You'll gain some combo Team color
     BULLET: '#F9A825',
     PLAYER_COLOR: '#039BE5',
     PROTECTOR_COLOR: 'rgba(0, 0, 0, .1)'
@@ -36,8 +38,17 @@ export default {
     ROTATE: 2,
     SHOOT: 3
   },
-  TIME_TO_REGENERATE_RESISTANCE: 500,
+  TIME_TO_REGENERATE_RESISTANCE: 2000,
+  TIME_TO_LEAVE_LEVELSHOWER: 2000,
   TIME_FOR_PROTECT_AT_START: 500,
   TIME_AFTER_RECOVERYMODE: 1000,
-  IMMORTAL_PLAYER_RESISTANCE: 9999
+  IMMORTAL_PLAYER_RESISTANCE: 9999,
+  GAME_INSTANCE_KEY: 'gi',
+  PLAYERS_PSEUDOS_KEY: 'pps',
+  PLAYER_SCORE_KEY: 'psc',
+  PLAYER_EVO_KEY: 'pev',
+  PLAYER_MODE_KEY: 'pmo',
+  PLAYER_RESISTANCE_KEY: 'prk',
+  PLAYER_TIMERECORDS_KEY: 'ptr',
+  GAMEOVER: 'Game Over'
 }

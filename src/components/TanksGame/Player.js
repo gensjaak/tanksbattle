@@ -9,7 +9,7 @@ let isLocked = false
 let xMax = 0
 let yMax = 0
 
-const releaseBots = false
+const releaseBots = true
 
 export default class Player {
   constructor (gameInstanceP, playerIdP, teamP, containerP, isBotP) {
@@ -20,14 +20,6 @@ export default class Player {
     this.isBot = isBotP
     this.resistance = this.team.resistance
     this.regenerateResistanceTimer = null
-    this.randomActionsTimerInterval = Functions.rand(500, 500)
-    this.recoveryMode = false
-    this.afterRecoveryModeTimer = null
-    this.botsActions = [
-      BaseConfig.ACTIONS.ROTATE,
-      BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT,
-      BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE
-    ]
 
     this.w = 40
     this.h = 45
@@ -39,6 +31,15 @@ export default class Player {
 
     if (!this.isBot) {
       this.score = 0
+    } else {
+      this.randomActionsTimerInterval = Functions.rand(500, 500)
+      this.recoveryMode = false
+      this.afterRecoveryModeTimer = null
+      this.botsActions = [
+        BaseConfig.ACTIONS.ROTATE,
+        BaseConfig.ACTIONS.SHOOT, BaseConfig.ACTIONS.SHOOT,
+        BaseConfig.ACTIONS.MOVE, BaseConfig.ACTIONS.MOVE
+      ]
     }
 
     this._draw()
@@ -103,7 +104,7 @@ export default class Player {
     BulletInstance.inhibe()
     if (this.resistance !== BaseConfig.IMMORTAL_PLAYER_RESISTANCE) {
       if (--this.resistance === 0) {
-        this._destroy()
+        this.destroy()
         return true
       } else {
         this._punched()
@@ -231,7 +232,7 @@ export default class Player {
     this.el.style.transform = 'rotate(' + this.face + 'deg)'
   }
 
-  _destroy () {
+  destroy () {
     let PlayerInstance = this
 
     clearInterval(PlayerInstance.randomActionsTimer)

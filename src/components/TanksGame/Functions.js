@@ -16,6 +16,10 @@ class Functions {
   pxToNumber (pxVal) {
     return parseFloat(pxVal.replace('px', ''))
   }
+
+  last (arr) {
+    return arr[arr.length - 1]
+  }
 }
 
 export default new Functions()
