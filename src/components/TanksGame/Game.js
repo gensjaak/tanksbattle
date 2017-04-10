@@ -12,6 +12,8 @@ let finishedAt = null
 let fixMainPlayer = false
 let TimeRecords = []
 let tmpTime
+let isPaused = false
+let shower
 
 export default class Game {
   constructor (configP, GStorage) {
@@ -72,6 +74,18 @@ export default class Game {
     _players.forEach((player, index) => {
       player.freeze()
     })
+
+    document.onkeydown = (event) => {
+      if (event.isTrusted && event.keyCode === BaseConfig.KEYS.BLANKSPACE) {
+        this.resume()
+      }
+    }
+
+    shower = this._showStatus('Paused', 'Your score is up to ' + this.MainPlayerInstance.score, 'Your resistance is up to ' + this.MainPlayerConfig.resistance, () => {
+      shower.remove()
+      document.onkeydown = null
+      this._restart()
+    })
   }
 
   resume () {
@@ -79,6 +93,10 @@ export default class Game {
     _players.forEach((player, index) => {
       player.unfreeze()
     })
+
+    if (shower) {
+      shower.remove()
+    }
   }
 
   punchPlayersWith (BulletInstance, laserJet) {
@@ -177,7 +195,7 @@ export default class Game {
   }
 
   _startMasochism () {
-    let startWith = 3
+    let startWith = 1
 
     this.MainPlayerConfig.pseudo = this.config.pseudo
     this.MainPlayerConfig.color = BaseConfig.COLORS.PLAYER_COLOR
@@ -185,6 +203,7 @@ export default class Game {
 
     this.MainPlayerInstance = new Player(this, this.MainPlayerConfig.pseudo, this.MainPlayerConfig, this.config.el, false)
     this.MainPlayerInstance.resistance = this.MainPlayerConfig.resistance
+    this.MainPlayerInstance.score = this.MainPlayerConfig.score = 0
 
     _players.push(this.MainPlayerInstance)
 
@@ -248,6 +267,7 @@ export default class Game {
 
     this.MainPlayerInstance = new Player(this, this.MainPlayerConfig.pseudo, this.MainPlayerConfig, this.config.el, false)
     this.MainPlayerInstance.resistance = this.MainPlayerConfig.resistance
+    this.MainPlayerInstance.score = this.MainPlayerConfig.score = 0
 
     _players.push(this.MainPlayerInstance)
 
@@ -441,6 +461,92 @@ export default class Game {
     replayBtn.addEventListener('click', __replayLevelFn, false)
   }
 
+  _showStatus (txt1, txt2, txt3, callback) {
+    let shower = document.createElement('div')
+    shower.style.position = 'absolute'
+    shower.style.top = '0'
+    shower.style.right = '0'
+    shower.style.bottom = '0'
+    shower.style.left = '0'
+    shower.style.zIndex = '99'
+    shower.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+    shower.style.cursor = 'default'
+
+    let el1 = document.createElement('span')
+    el1.innerText = txt1
+    el1.style.display = 'block'
+    el1.style.width = '100%'
+    el1.style.textAlign = 'center'
+    el1.style.fontSize = '10em'
+    el1.style.fontFamily = 'fantasy'
+    el1.style.margin = '20% 0'
+    el1.style.color = '#FAFAFA'
+    el1.style.marginBottom = '0'
+    el1.style.lineHeight = '1'
+
+    let el2 = document.createElement('span')
+    el2.innerText = txt2
+    el2.style.display = 'block'
+    el2.style.width = 'initial'
+    el2.style.textAlign = 'center'
+    el2.style.fontSize = '3em'
+    el2.style.fontFamily = 'fantasy'
+    el2.style.margin = '0'
+    el2.style.color = '#00BCD4'
+    el2.style.padding = '0 5%'
+    el2.style.lineHeight = '1.2'
+    el2.style.marginTop = '0'
+
+    let el3 = document.createElement('span')
+    el3.innerText = txt3
+    el3.style.display = 'block'
+    el3.style.width = '100%'
+    el3.style.textAlign = 'center'
+    el3.style.fontSize = '1.5em'
+    el3.style.fontFamily = 'sans-serif'
+    el3.style.margin = '0'
+    el3.style.color = '#FAFAFA'
+    el3.style.position = 'absolute'
+    el3.style.bottom = '10%'
+    el3.style.fontWeight = 'bold'
+
+    let btn = document.createElement('button')
+    btn.innerText = 'restart this level'
+    btn.style.display = 'inline-block'
+    btn.style.width = '40%'
+    btn.style.textAlign = 'center'
+    btn.style.fontSize = '1em'
+    btn.style.fontFamily = 'sans-serif'
+    btn.style.margin = '0 30%'
+    btn.style.color = '#FFF'
+    btn.style.position = 'absolute'
+    btn.style.bottom = '20%'
+    btn.style.right = '0'
+    btn.style.fontWeight = 'bold'
+    btn.style.height = '70px'
+    btn.style.border = 'none'
+    btn.style.background = '#EF9A9A'
+    btn.style.textTransform = 'lowercase'
+    btn.style.fontVariant = 'small-caps'
+    btn.style.borderRadius = '50px'
+    btn.style.outline = 'none'
+    btn.style.boxShadow = 'none'
+    btn.style.cursor = 'pointer'
+
+    shower.appendChild(el1)
+    shower.appendChild(el2)
+    shower.appendChild(el3)
+    shower.appendChild(btn)
+
+    this.config.el.appendChild(shower)
+
+    btn.addEventListener('click', (event) => {
+      callback()
+    })
+
+    return shower
+  }
+
   _getMainPlayers () {
     return _players.filter((player, index) => {
       return !player.isBot
@@ -472,10 +578,31 @@ export default class Game {
         case BaseConfig.KEYS.SECONDARY_FIRE:
           console.log('Secondary Fire')
           break
-        default:
-          // Key not supported in this version of the game
+        case BaseConfig.KEYS.BLANKSPACE:
+          isPaused = true
+          this.pause()
           break
       }
+    }
+  }
+
+  _restart () {
+    fixMainPlayer = false
+    _players.forEach((player) => {
+      player.destroy()
+    })
+    _players = []
+
+    switch (this.config.mode) {
+      case BaseConfig.GAME_MODES[0]: // Arcade
+        this._startLevel(this.MainPlayerConfig.level)
+        break
+      case BaseConfig.GAME_MODES[1]: // Survival
+        this._startSurvival()
+        break
+      case BaseConfig.GAME_MODES[2]: // Masochist
+        this._startMasochism()
+        break
     }
   }
 
@@ -501,24 +628,8 @@ export default class Game {
 
   _gameOver () {
     this._showLevelEnd(BaseConfig.GAMEOVER, 'You failed with ' + this.MainPlayerConfig.score + ' pts !', (playerDecision) => {
-      fixMainPlayer = false
-      _players.forEach((player) => {
-        player.destroy()
-      })
-      _players = []
       this._writeToStorage(this.MainPlayerConfig.pseudo, this.MainPlayerConfig.gameMode, this.MainPlayerConfig.score, this.MainPlayerConfig.level, this.MainPlayerConfig.resistance)
-
-      switch (this.config.mode) {
-        case BaseConfig.GAME_MODES[0]: // Arcade
-          this._startLevel(this.MainPlayerConfig.level)
-          break
-        case BaseConfig.GAME_MODES[1]: // Survival
-          this._startSurvival()
-          break
-        case BaseConfig.GAME_MODES[2]: // Masochist
-          this._startMasochism()
-          break
-      }
+      this._restart()
     })
   }
 
@@ -568,9 +679,11 @@ export default class Game {
 
   _freezeMainPlayer () {
     document.onkeydown = null
+    this.MainPlayerInstance.freeze()
   }
 
   _unfreezeMainPlayer () {
+    this.MainPlayerInstance.unfreeze()
     document.onkeydown = (event) => {
       this._playerMobility(event, this.MainPlayerInstance)
     }

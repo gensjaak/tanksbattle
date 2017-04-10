@@ -43,7 +43,8 @@ export default {
     LEFT: 37,
     RIGHT: 39,
     PRIMARY_FIRE: 88,
-    SECONDARY_FIRE: 69
+    SECONDARY_FIRE: 69,
+    BLANKSPACE: 32
   },
   ACTIONS: {
     MOVE: 1,

@@ -73,12 +73,6 @@
             pseudo: this.pseudo
           }, GStorage)
         }
-      },
-      pause () {
-        this.GameInstance.pause()
-      },
-      resume () {
-        this.GameInstance.resume()
       }
     }
   }

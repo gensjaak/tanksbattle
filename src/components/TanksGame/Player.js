@@ -61,11 +61,14 @@ export default class Player {
 
   freeze () {
     clearInterval(this.randomActionsTimer)
+    clearInterval(this.regenerateResistanceTimer)
   }
 
   unfreeze () {
     if (this.isBot) {
       this._inflateBotCapabilities()
+      this._refreshResistanceEffects()
+      this._regenerateResistance()
     }
   }
 
@@ -127,6 +130,19 @@ export default class Player {
     } else {
       isLocked = true
     }
+  }
+
+  _regenerateResistance () {
+    this._refreshResistanceEffects()
+    this.regenerateResistanceTimer = setInterval(() => {
+      if (this.resistance < this.team.resistance) {
+        this.resistance++
+      } else {
+        clearInterval(this.regenerateResistanceTimer)
+        this._injectNormalMode()
+      }
+      this._refreshResistanceEffects()
+    }, BaseConfig.TIME_TO_REGENERATE_RESISTANCE)
   }
 
   _updatePosition (xP, yP) {
@@ -304,20 +320,8 @@ export default class Player {
   }
 
   _punched () {
-    let PlayerInstance = this
-
-    clearInterval(PlayerInstance.regenerateResistanceTimer)
-    PlayerInstance._refreshResistanceEffects()
-
-    PlayerInstance.regenerateResistanceTimer = setInterval(() => {
-      if (PlayerInstance.resistance < PlayerInstance.team.resistance) {
-        PlayerInstance.resistance++
-      } else {
-        clearInterval(PlayerInstance.regenerateResistanceTimer)
-        PlayerInstance._injectNormalMode()
-      }
-      PlayerInstance._refreshResistanceEffects()
-    }, BaseConfig.TIME_TO_REGENERATE_RESISTANCE)
+    clearInterval(this.regenerateResistanceTimer)
+    this._regenerateResistance()
   }
 
   _runCallbacks (callbacks) {
