@@ -5,12 +5,24 @@ export default {
     SQUARE: 50
   },
   GAME_MODES: ['Arcade', 'Survivant', 'Masochiste'],
+  GAME_MODES_KEYS: {
+    SURVIVAL: {
+      KEY: -1,
+      PLAYER_RESISTANCE: 2,
+      NB_PLAYERS: 100
+    },
+    MASOCHISME: {
+      KEY: -99,
+      PLAYER_RESISTANCE: 1,
+      NB_PLAYERS: 100
+    }
+  },
   COLORS: {
     RED: '#F44336', // Strong Team color
     GREEN: '#66BB6A', // Weak Team color
     YELLOW: '#FFEB3B', // Medium Team color
     PURPLE: '#3F51B5', // Dont disturb Team color
-    CYAN: '#00ACC1', // You'll gain some combo Team color
+    CYAN: '#009688', // You'll gain some combo Team color
     BULLET: '#F9A825',
     PLAYER_COLOR: '#039BE5',
     PROTECTOR_COLOR: 'rgba(0, 0, 0, .1)'

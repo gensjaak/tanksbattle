@@ -34,12 +34,12 @@ export default class Game {
         this._startLevel(this.MainPlayerConfig.level)
         break
       case BaseConfig.GAME_MODES[1]: // Survival
-        this.MainPlayerConfig.level = -1
-        this._startLevel(this.MainPlayerConfig.level)
+        this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.SURVIVAL.KEY
+        this._startSurvival()
         break
       case BaseConfig.GAME_MODES[2]: // Masochisme
-        this.MainPlayerConfig.level = -99
-        this._startLevel(this.MainPlayerConfig.level)
+        this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.MASOCHISME.KEY
+        this._startMasochism()
         break
     }
   }
@@ -170,13 +170,97 @@ export default class Game {
 
   _startLevel (lvlKey) {
     this.config.teams = LEVELS[lvlKey].config.teams
-    this._showLevelInfos(() => {
+    this._showLevelInfos((parseInt(this.MainPlayerConfig.level) + 1), LEVELS[this.MainPlayerConfig.level].name, LEVELS[this.MainPlayerConfig.level].config.player.resistance, () => {
       tmpTime = new Date()
       this.start().inflateBehaviours()
     })
   }
 
-  _showLevelInfos (callback) {
+  _startMasochism () {
+    let startWith = 3
+
+    this.MainPlayerConfig.pseudo = this.config.pseudo
+    this.MainPlayerConfig.color = BaseConfig.COLORS.PLAYER_COLOR
+    this.MainPlayerConfig.resistance = BaseConfig.GAME_MODES_KEYS.MASOCHISME.PLAYER_RESISTANCE
+
+    this.MainPlayerInstance = new Player(this, this.MainPlayerConfig.pseudo, this.MainPlayerConfig, this.config.el, false)
+    this.MainPlayerInstance.resistance = this.MainPlayerConfig.resistance
+
+    _players.push(this.MainPlayerInstance)
+
+    this._protectPlayer(this.MainPlayerInstance)
+
+    this._addStrongBots(startWith)
+
+    this._showLevelInfos('', 'Masochist mode', BaseConfig.GAME_MODES_KEYS.MASOCHISME.PLAYER_RESISTANCE, () => {
+      this.inflateBehaviours()
+    })
+  }
+
+  _addBots (nb) {
+    let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE, BaseConfig.COLORS.CYAN]
+    nb = nb || Functions.rand(1, 2)
+
+    if (_players.length >= 8) {
+      nb = 1
+    }
+
+    for (let i = 0; i < nb; i++) {
+      let randomConfig = {
+        botId: 'TANK_' + (i + 1),
+        team: {
+          resistance: Functions.rand(1, 6),
+          color: Colors[Functions.rand(0, (Colors.length - 1))],
+          winPts: Functions.randInArray([10, 20, 30])
+        }
+      }
+      _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
+    }
+  }
+
+  _addStrongBots (nb) {
+    let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE, BaseConfig.COLORS.CYAN]
+    nb = nb || Functions.rand(1, 2)
+
+    if (_players.length >= 8) {
+      nb = 1
+    }
+
+    for (let i = 0; i < nb; i++) {
+      let randomConfig = {
+        botId: 'TANK_' + (i + 1),
+        team: {
+          resistance: Functions.rand(10, 15),
+          color: Colors[Functions.rand(0, (Colors.length - 1))],
+          winPts: Functions.randInArray([50, 60, 70])
+        }
+      }
+      _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
+    }
+  }
+
+  _startSurvival () {
+    let startWith = 5
+
+    this.MainPlayerConfig.pseudo = this.config.pseudo
+    this.MainPlayerConfig.color = BaseConfig.COLORS.PLAYER_COLOR
+    this.MainPlayerConfig.resistance = BaseConfig.GAME_MODES_KEYS.SURVIVAL.PLAYER_RESISTANCE
+
+    this.MainPlayerInstance = new Player(this, this.MainPlayerConfig.pseudo, this.MainPlayerConfig, this.config.el, false)
+    this.MainPlayerInstance.resistance = this.MainPlayerConfig.resistance
+
+    _players.push(this.MainPlayerInstance)
+
+    this._protectPlayer(this.MainPlayerInstance)
+
+    this._addBots(startWith)
+
+    this._showLevelInfos('', 'Survival mode', BaseConfig.GAME_MODES_KEYS.SURVIVAL.PLAYER_RESISTANCE, () => {
+      this.inflateBehaviours()
+    })
+  }
+
+  _showLevelInfos (txt1, txt2, txt3, callback) {
     let levelShower = document.createElement('div')
     levelShower.style.position = 'absolute'
     levelShower.style.top = '0'
@@ -188,7 +272,7 @@ export default class Game {
     levelShower.style.cursor = 'default'
 
     let lvlIndex = document.createElement('span')
-    lvlIndex.innerText = (parseInt(this.MainPlayerConfig.level) + 1)
+    lvlIndex.innerText = txt1
     lvlIndex.style.display = 'block'
     lvlIndex.style.width = '100%'
     lvlIndex.style.textAlign = 'center'
@@ -200,7 +284,7 @@ export default class Game {
     lvlIndex.style.lineHeight = '1'
 
     let lvlName = document.createElement('span')
-    lvlName.innerText = LEVELS[this.MainPlayerConfig.level].name
+    lvlName.innerText = txt2
     lvlName.style.display = 'block'
     lvlName.style.width = 'initial'
     lvlName.style.textAlign = 'center'
@@ -213,7 +297,7 @@ export default class Game {
     lvlName.style.marginTop = '0'
 
     let lvlPlayerResistance = document.createElement('span')
-    lvlPlayerResistance.innerText = 'Your resistance is up to ' + LEVELS[this.MainPlayerConfig.level].config.player.resistance
+    lvlPlayerResistance.innerText = 'Your resistance is up to ' + txt3
     lvlPlayerResistance.style.display = 'block'
     lvlPlayerResistance.style.width = '100%'
     lvlPlayerResistance.style.textAlign = 'center'
@@ -423,7 +507,18 @@ export default class Game {
       })
       _players = []
       this._writeToStorage(this.MainPlayerConfig.pseudo, this.MainPlayerConfig.gameMode, this.MainPlayerConfig.score, this.MainPlayerConfig.level, this.MainPlayerConfig.resistance)
-      this._startLevel(this.MainPlayerConfig.level)
+
+      switch (this.config.mode) {
+        case BaseConfig.GAME_MODES[0]: // Arcade
+          this._startLevel(this.MainPlayerConfig.level)
+          break
+        case BaseConfig.GAME_MODES[1]: // Survival
+          this._startSurvival()
+          break
+        case BaseConfig.GAME_MODES[2]: // Masochist
+          this._startMasochism()
+          break
+      }
     })
   }
 
@@ -441,15 +536,31 @@ export default class Game {
           this.MainPlayerConfig.score = this.MainPlayerInstance.score
         }
 
-        if (this._someOneWon() || this._mainPlayerDied()) {
-          finishedAt = new Date() - tmpTime
-          let survival = _players[0]
+        switch (this.config.mode) {
+          case BaseConfig.GAME_MODES[0]: // Arcade
+            if (this._someOneWon() || this._mainPlayerDied()) {
+              finishedAt = new Date() - tmpTime
+              let survival = _players[0]
 
-          if (survival.isBot) { // Game over
-            this._gameOver()
-          } else { // He won
-            this._playerWon()
-          }
+              if (survival.isBot) { // Game over
+                this._gameOver()
+              } else { // He won
+                this._playerWon()
+              }
+            }
+            break
+          case BaseConfig.GAME_MODES[1]: // Survival
+            this._addBots()
+            if (this._mainPlayerDied()) {
+              this._gameOver()
+            }
+            break
+          case BaseConfig.GAME_MODES[2]: // Masochist
+            this._addStrongBots()
+            if (this._mainPlayerDied()) {
+              this._gameOver()
+            }
+            break
         }
       }
     }
