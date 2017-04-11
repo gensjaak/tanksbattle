@@ -1,12 +1,15 @@
 /* eslint-disable no-new */
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-extra-bind */
 
 import Functions from './Functions.js'
 import BaseConfig from './BaseConfig.js'
 import Player from './Player'
+import Spirit from './Spirit.js'
 import LEVELS from './LevelsConfig'
 
 let _players = []
+let _spirits = []
 let playerMovesAndProtector = 0
 let finishedAt = null
 let fixMainPlayer = false
@@ -126,6 +129,9 @@ export default class Game {
       this._unfreezeMainPlayer()
     }
 
+    // All players are searching for spirits
+    this._watchForSpirits()
+
     // Others behaviours
     // Run away if detect MainPlayer near
     // this._botsCapability1()
@@ -136,8 +142,8 @@ export default class Game {
     return this
   }
 
-  launchSpiritPower (spiritKey, caller) {
-    this._showSpiritEffects()
+  _launchSpiritPower (spiritKey, caller) {
+    this._showSpiritEffects(spiritKey, caller)
     switch (spiritKey) {
       case BaseConfig.SPIRITS.FREEZER:
         _players.forEach((player, index) => {
@@ -156,7 +162,119 @@ export default class Game {
     }
   }
 
-  _showSpiritEffects () {
+  _watchForSpirits () {
+    _players.forEach((player, index) => {
+      player.spiritResearch = player.onMove((pos) => {
+        let __spiritsPositions = new Array(_spirits.length).fill('').map((spiritPosition, i) => {
+          return _spirits[i].x + ':' + _spirits[i].y
+        })
+        let index = __spiritsPositions.indexOf(pos.x + ':' + pos.y)
+        if (index > -1) {
+          let SpiritInstance = _spirits[index]
+
+          this._gainSpirit(player, SpiritInstance)
+
+          SpiritInstance.leaveUs()
+        }
+      })
+    })
+  }
+
+  _gainSpirit (PlayerInstance, SpiritInstance) {
+    PlayerInstance.spirits.push(SpiritInstance.key)
+
+    let spiritPower = document.createElement('div')
+    spiritPower.style.position = 'absolute'
+    spiritPower.style.zIndex = '98'
+    spiritPower.style.left = Functions.pxToNumber(PlayerInstance.el.style.left) - PlayerInstance.fW + 'px'
+    spiritPower.style.top = Functions.pxToNumber(PlayerInstance.el.style.top) - PlayerInstance.fH + 'px'
+    spiritPower.style.borderRadius = '50%'
+    spiritPower.style.border = 'none'
+    spiritPower.style.boxSizing = 'border-box'
+    spiritPower.style.width = (PlayerInstance.fW * 3) + 'px'
+    spiritPower.style.height = (PlayerInstance.fH * 3) + 'px'
+    spiritPower.style.backgroundColor = SpiritInstance.color
+    spiritPower.style.transform = 'scale(0)'
+    spiritPower.style.opacity = '.5'
+    spiritPower.style.transition = 'all .5s ease-out 0s'
+
+    this.config.el.appendChild(spiritPower)
+    this._connectMoves(PlayerInstance, spiritPower)
+
+    let i = 0
+    let scaleMax = 1
+    let spiritoutousEffects = setInterval(() => {
+      if (i >= scaleMax) {
+        clearInterval(spiritoutousEffects)
+        spiritoutousEffects = setTimeout(() => {
+          let spiritoutousEffects2 = setInterval(() => {
+            if (i <= 0) {
+              spiritPower.remove()
+              clearInterval(spiritoutousEffects)
+              clearInterval(spiritoutousEffects2)
+              this._deconnectMoves(PlayerInstance, spiritPower)
+            } else {
+              spiritPower.style.transform = 'scale(' + i + ')'
+              i -= 0.1
+            }
+          }, 30)
+        }, 500)
+      } else {
+        spiritPower.style.transform = 'scale(' + i + ')'
+        i += 0.1
+      }
+    }, 5)
+
+    document.onkeypress = (event) => {
+      if (event.isTrusted && (event.keyCode === BaseConfig.KEYS.SPIRIT_LAUNCHER || event.charCode === BaseConfig.KEYS.SPIRIT_LAUNCHER)) {
+        this._launchSpiritPower(SpiritInstance.key, PlayerInstance)
+        PlayerInstance.spirits = Functions.removeAt(PlayerInstance.spirits, PlayerInstance.spirits.indexOf(SpiritInstance.key))
+        document.onkeypress = null
+      }
+    }
+  }
+
+  _drawSpiritoutous (PlayerInstance) {
+    let spiritoutous = document.createElement('div')
+    spiritoutous.style.position = 'absolute'
+    spiritoutous.style.zIndex = '98'
+    spiritoutous.style.left = Functions.pxToNumber(PlayerInstance.el.style.left) - PlayerInstance.fW + 'px'
+    spiritoutous.style.top = Functions.pxToNumber(PlayerInstance.el.style.top) - PlayerInstance.fH + 'px'
+    spiritoutous.style.borderRadius = '50%'
+    spiritoutous.style.border = 'none'
+    spiritoutous.style.boxSizing = 'border-box'
+    spiritoutous.style.width = (PlayerInstance.fW * 3) + 'px'
+    spiritoutous.style.height = (PlayerInstance.fH * 3) + 'px'
+    spiritoutous.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'
+    spiritoutous.style.transform = 'scale(0)'
+    spiritoutous.style.transition = 'all .5s ease-out 0s'
+
+    this.config.el.appendChild(spiritoutous)
+
+    return spiritoutous
+  }
+
+  _showSpiritEffects (spiritKey, PlayerInstance) {
+    let SpiritoutousElement = this._drawSpiritoutous(PlayerInstance)
+    let i = 0
+    let scaleMax = parseInt(BaseConfig.DIMENS.HEIGHT / BaseConfig.DIMENS.SQUARE)
+    let spiritoutousEffects = setInterval(() => {
+      if (i >= scaleMax) {
+        clearInterval(spiritoutousEffects)
+        let opacity = 1
+        spiritoutousEffects = setInterval(() => {
+          SpiritoutousElement.style.opacity = opacity
+          opacity -= 0.1
+          if (opacity <= 0) {
+            SpiritoutousElement.remove()
+            clearInterval(spiritoutousEffects)
+          }
+        }, (BaseConfig.SPIRITS_CONFIG[spiritKey].ttl / 10))
+      } else {
+        SpiritoutousElement.style.transform = 'scale(' + i + ')'
+        i++
+      }
+    }, 5)
   }
 
   _writeToStorage (pseudoP, gameModeP, scoreP, levelP, resistanceP) {
@@ -323,7 +441,6 @@ export default class Game {
     this._createDashBoard('#FFF')
 
     let lvlIndex = document.createElement('span')
-    lvlIndex.innerText = Functions.twoDigits(txt1)
     lvlIndex.style.display = 'block'
     lvlIndex.style.width = '100%'
     lvlIndex.style.textAlign = 'center'
@@ -333,6 +450,9 @@ export default class Game {
     lvlIndex.style.color = '#607D8B'
     lvlIndex.style.marginBottom = '0'
     lvlIndex.style.lineHeight = '1'
+    if (txt1.toString() !== '') {
+      lvlIndex.innerText = Functions.twoDigits(txt1)
+    }
 
     let lvlName = document.createElement('span')
     lvlName.innerText = txt2
@@ -681,18 +801,26 @@ export default class Game {
     return (_players.indexOf(this.MainPlayerInstance) === -1)
   }
 
-  _punch (BulletInstance, PlayerInstance) {
-    if (BulletInstance.shooter && (BulletInstance.shooter.isBot !== PlayerInstance.isBot)) {
-      if (PlayerInstance.getPunched(BulletInstance)) {
-        _players = Functions.removeAt(_players, _players.indexOf(PlayerInstance))
+  _punch (BulletInstance, DeadPlayerInstance) {
+    if (BulletInstance.shooter && (BulletInstance.shooter.isBot !== DeadPlayerInstance.isBot)) {
+      if (DeadPlayerInstance.getPunched(BulletInstance)) {
+        _players = Functions.removeAt(_players, _players.indexOf(DeadPlayerInstance))
 
         if (!BulletInstance.shooter.isBot) {
-          if (PlayerInstance.team.haveSpirit) {
-            BulletInstance.shooter.updateScore(PlayerInstance.team.gain.pts)
+          if (DeadPlayerInstance.team.haveSpirit) {
+            BulletInstance.shooter.updateScore(DeadPlayerInstance.team.gain.pts)
 
-            PlayerInstance.unleashSpirit()
+            let SpiritInstance = DeadPlayerInstance.unleashSpirit()
+            _spirits.push(SpiritInstance)
+
+            if (SpiritInstance) {
+              setTimeout(() => {
+                _spirits = Functions.removeAt(_spirits, _spirits.indexOf(SpiritInstance))
+                SpiritInstance.leaveUs()
+              }, BaseConfig.TIME_FOR_SPIRIT_TO_LEAVE)
+            }
           } else {
-            BulletInstance.shooter.updateScore(PlayerInstance.team.gain)
+            BulletInstance.shooter.updateScore(DeadPlayerInstance.team.gain)
           }
           this.MainPlayerConfig.score = this.MainPlayerInstance.score
         }

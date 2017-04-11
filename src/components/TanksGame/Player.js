@@ -6,8 +6,6 @@ import BaseConfig from './BaseConfig.js'
 import Spirit from './Spirit.js'
 
 let _positions = []
-let _spiritsPositions = []
-let _spirits = []
 let isLocked = false
 let xMax = 0
 let yMax = 0
@@ -27,6 +25,7 @@ export default class Player {
     this.canShoot = true
     this.canRecuve = true
     this.spirits = []
+    this.spiritResearch = null
 
     this.w = 40
     this.h = 45
@@ -106,7 +105,6 @@ export default class Player {
   moveTo (xP, yP) {
     if (_positions.indexOf(xP + ':' + yP) === -1 && (xP > -1 && yP > -1) && (xP < xMax && yP < yMax)) {
       this._delAndUpdatePosition(xP, yP)
-      this._watchForSpirits(xP, yP)
       if (this.moveCallbacks) {
         this._runCallbacks(this.moveCallbacks, this.getPosition())
       }
@@ -155,19 +153,11 @@ export default class Player {
   unleashSpirit () {
     if (this.team.haveSpirit) {
       let pos = this.getPosition()
-      let SpiritInstance = new Spirit(this.playerId.toString().trim() + '_SPIRIT_' + this.team.gain.spiritKey, this.team.gain.spiritKey, this.el.style.left, this.el.style.top, this.team.color, this.container)
-
-      _spirits.push(SpiritInstance)
-      _spiritsPositions.push(pos.x + ':' + pos.y)
+      let SpiritInstance = new Spirit(this.playerId.toString().trim() + '_SPIRIT_' + this.team.gain.spiritKey, this.team.gain.spiritKey, pos.x, pos.y, this.team.color, this.container)
 
       this.destroy()
 
-      setTimeout(() => {
-        let index = _spirits.indexOf(SpiritInstance)
-        _spirits = Functions.removeAt(_spirits, index)
-        _spiritsPositions = Functions.removeAt(_spiritsPositions, index)
-        SpiritInstance.leaveUs()
-      }, BaseConfig.TIME_FOR_SPIRIT_TO_LEAVE)
+      return SpiritInstance
     }
   }
 
@@ -179,29 +169,6 @@ export default class Player {
     setTimeout(() => {
       this.el.remove()
     }, 200)
-  }
-
-  _gainSpirit (spiritKey) {
-    this.spirits.push(spiritKey)
-
-    document.onkeypress = (event) => {
-      if (event.isTrusted && (event.keyCode === BaseConfig.KEYS.SPIRIT_LAUNCHER || event.charCode === BaseConfig.KEYS.SPIRIT_LAUNCHER)) {
-        this.GameInstance.launchSpiritPower(spiritKey, this)
-        this.spirits = Functions.removeAt(this.spirits, this.spirits.indexOf(spiritKey))
-        document.onkeypress = null
-      }
-    }
-  }
-
-  _watchForSpirits (xP, yP) {
-    let index = _spiritsPositions.indexOf(xP + ':' + yP)
-    if (index > -1) {
-      let SpiritInstance = _spirits[index]
-
-      this._gainSpirit(SpiritInstance.key)
-
-      SpiritInstance.leaveUs()
-    }
   }
 
   _rearm () {
@@ -270,11 +237,16 @@ export default class Player {
     this.el.style.boxShadow = this.team.color + ' 0px 10px 20px -5px'
     this.el.style.position = 'absolute'
     this.el.style.overflow = 'visible'
-    this.el.style.zIndex = '99'
     this.el.style.transition = 'all .2s ease-out 0s'
     this.el.setAttribute('id', this.playerId.toString().trim())
     this._updatePosition(smartPosition[0], smartPosition[1])
     this._updateFace()
+
+    if (this.isBot) {
+      this.el.style.zIndex = '90'
+    } else {
+      this.el.style.zIndex = '99'
+    }
 
     if (this.team.haveSpirit) {
       this.el.style.border = '5px solid ' + this.team.color

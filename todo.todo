@@ -8,13 +8,21 @@
 	---- Auto générer des résistances à des intervalles très rare (ajouter ces résistances à la team 3+3 === 6)
 	---- Créer d'autres formes de Bullets
   ---- Récompenser d'une manière les MainPlayers kan un bot est mort. Un autre bot peut également récupérer cette récompense
-	---- Implémenter un spirit de Refouler tous pour éloigner tous les bots au tour du MainPlayer avec un effet de Big Protector
+  ---- Implémenter un spirit de Refouler tous pour éloigner tous les bots au tour du MainPlayer avec un effet de Big Protector
+	+---- Implémenter un spirit de Freezer pour freeze tous les bots au tour du MainPlayer avec un effet de Big Protector
 
 +--- Intégrer les levels (Level 1, 2, 3, ...) avec leurs difficultés
 
+--- Multiplayer
+  -- Arcade
+    - Players can create team composed by 3 co-workers in addition
+    - Players can work together against bots
+  -- Survival: Players should work together
+  -- Masochist: Players should work together
+
 --- Déssiner les bordures (jsai pa nkr cmt le faire, des carreaux pleins ou à leurs bordures ?)
 
--- Configurer le GameInstance
++-- Configurer le GameInstance
   +- Pseudo du gamer
   +- Mode Arcade avec les levels progressifs
   +- Mode Survivant avec courage et perséverance ;)
