@@ -45,7 +45,7 @@
       return {
         GameInstance: null,
         GameModes: BaseConfig.GAME_MODES,
-        gameMode: BaseConfig.GAME_MODES[2],
+        gameMode: BaseConfig.GAME_MODES[0],
         showGameConfig: false,
         pseudo: 'phareal'
       }

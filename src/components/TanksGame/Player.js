@@ -3,8 +3,11 @@
 import Functions from './Functions.js'
 import Bullet from './Bullet.js'
 import BaseConfig from './BaseConfig.js'
+import Spirit from './Spirit.js'
 
 let _positions = []
+let _spiritsPositions = []
+let _spirits = []
 let isLocked = false
 let xMax = 0
 let yMax = 0
@@ -20,6 +23,10 @@ export default class Player {
     this.isBot = isBotP
     this.resistance = this.team.resistance
     this.regenerateResistanceTimer = null
+    this.rearmTimer = null
+    this.canShoot = true
+    this.canRecuve = true
+    this.spirits = []
 
     this.w = 40
     this.h = 45
@@ -62,14 +69,34 @@ export default class Player {
   freeze () {
     clearInterval(this.randomActionsTimer)
     clearInterval(this.regenerateResistanceTimer)
+    clearInterval(this.rearmTimer)
+  }
+
+  forceFreeze () {
+    this.canRecuve = false
+    clearTimeout(this.rearmTimer)
+    clearInterval(this.randomActionsTimer)
+    clearTimeout(this.afterRecoveryModeTimer)
+    clearInterval(this.regenerateResistanceTimer)
+  }
+
+  unForceFreeze () {
+    if (this.isBot) {
+      this._inflateBotCapabilities()
+    }
+    this._refreshResistanceEffects()
+    this._regenerateResistance()
+    this._rearm()
+    this.canRecuve = true
   }
 
   unfreeze () {
     if (this.isBot) {
       this._inflateBotCapabilities()
-      this._refreshResistanceEffects()
-      this._regenerateResistance()
     }
+    this._refreshResistanceEffects()
+    this._regenerateResistance()
+    this._rearm()
   }
 
   getFace () {
@@ -79,6 +106,7 @@ export default class Player {
   moveTo (xP, yP) {
     if (_positions.indexOf(xP + ':' + yP) === -1 && (xP > -1 && yP > -1) && (xP < xMax && yP < yMax)) {
       this._delAndUpdatePosition(xP, yP)
+      this._watchForSpirits(xP, yP)
       if (this.moveCallbacks) {
         this._runCallbacks(this.moveCallbacks, this.getPosition())
       }
@@ -100,23 +128,87 @@ export default class Player {
   }
 
   shootPrimary () {
-    new Bullet('BULLET_' + this.playerId + '_001', this.container, this).acheminate()
+    if (this.canShoot) {
+      new Bullet('BULLET_' + this.playerId + '_001', this.container, this).acheminate()
+      this._rearm()
+    }
   }
 
   getPunched (BulletInstance) {
     BulletInstance.inhibe()
     if (this.resistance !== BaseConfig.IMMORTAL_PLAYER_RESISTANCE) {
       if (--this.resistance === 0) {
-        this.destroy()
+        if (!this.team.haveSpirit) {
+          this.destroy()
+        }
         return true
       } else {
         this._punched()
-        if (this.isBot) {
+        if (this.isBot && this.canRecuve) {
           this._injectRecoveryMode(BulletInstance)
         }
         return false
       }
     }
+  }
+
+  unleashSpirit () {
+    if (this.team.haveSpirit) {
+      let pos = this.getPosition()
+      let SpiritInstance = new Spirit(this.playerId.toString().trim() + '_SPIRIT_' + this.team.gain.spiritKey, this.team.gain.spiritKey, this.el.style.left, this.el.style.top, this.team.color, this.container)
+
+      _spirits.push(SpiritInstance)
+      _spiritsPositions.push(pos.x + ':' + pos.y)
+
+      this.destroy()
+
+      setTimeout(() => {
+        let index = _spirits.indexOf(SpiritInstance)
+        _spirits = Functions.removeAt(_spirits, index)
+        _spiritsPositions = Functions.removeAt(_spiritsPositions, index)
+        SpiritInstance.leaveUs()
+      }, BaseConfig.TIME_FOR_SPIRIT_TO_LEAVE)
+    }
+  }
+
+  destroy () {
+    this.forceFreeze()
+    _positions = Functions.removeAt(_positions, _positions.indexOf(this.getPosition().x + ':' + this.getPosition().y))
+
+    this.el.style.transform += 'scale(.01)'
+    setTimeout(() => {
+      this.el.remove()
+    }, 200)
+  }
+
+  _gainSpirit (spiritKey) {
+    this.spirits.push(spiritKey)
+
+    document.onkeypress = (event) => {
+      if (event.isTrusted && (event.keyCode === BaseConfig.KEYS.SPIRIT_LAUNCHER || event.charCode === BaseConfig.KEYS.SPIRIT_LAUNCHER)) {
+        this.GameInstance.launchSpiritPower(spiritKey, this)
+        this.spirits = Functions.removeAt(this.spirits, this.spirits.indexOf(spiritKey))
+        document.onkeypress = null
+      }
+    }
+  }
+
+  _watchForSpirits (xP, yP) {
+    let index = _spiritsPositions.indexOf(xP + ':' + yP)
+    if (index > -1) {
+      let SpiritInstance = _spirits[index]
+
+      this._gainSpirit(SpiritInstance.key)
+
+      SpiritInstance.leaveUs()
+    }
+  }
+
+  _rearm () {
+    this.canShoot = false
+    this.rearmTimer = setTimeout(() => {
+      this.canShoot = true
+    }, BaseConfig.TIME_TO_REARM)
   }
 
   _delAndUpdatePosition (xP, yP) {
@@ -179,12 +271,18 @@ export default class Player {
     this.el.style.position = 'absolute'
     this.el.style.overflow = 'visible'
     this.el.style.zIndex = '99'
-    this.el.style.border = '5px solid #FFF'
-    this.el.style.borderTop = 'none'
     this.el.style.transition = 'all .2s ease-out 0s'
     this.el.setAttribute('id', this.playerId.toString().trim())
     this._updatePosition(smartPosition[0], smartPosition[1])
     this._updateFace()
+
+    if (this.team.haveSpirit) {
+      this.el.style.border = '5px solid ' + this.team.color
+      this.crop = (this.w * 20) / 100
+    } else {
+      this.el.style.border = '5px solid #FFF'
+    }
+    this.el.style.borderTop = 'none'
 
     let ctx = this.el.getContext('2d')
     ctx.fillStyle = this.team.color
@@ -246,19 +344,6 @@ export default class Player {
 
   _updateFace () {
     this.el.style.transform = 'rotate(' + this.face + 'deg)'
-  }
-
-  destroy () {
-    let PlayerInstance = this
-
-    clearInterval(PlayerInstance.randomActionsTimer)
-    clearInterval(PlayerInstance.regenerateResistanceTimer)
-    _positions = Functions.removeAt(_positions, _positions.indexOf(PlayerInstance.getPosition().x + ':' + PlayerInstance.getPosition().y))
-
-    PlayerInstance.el.style.transform += 'scale(.01)'
-    setTimeout(() => {
-      PlayerInstance.el.remove()
-    }, 200)
   }
 
   _refreshResistanceEffects () {

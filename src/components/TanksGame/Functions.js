@@ -20,6 +20,15 @@ class Functions {
   last (arr) {
     return arr[arr.length - 1]
   }
+
+  empty (HTMLElement) {
+    HTMLElement.innerHTML = ''
+  }
+
+  twoDigits (param) {
+    param = param.toString()
+    return (param.length <= 1) ? ('0' + param) : (param)
+  }
 }
 
 export default new Functions()

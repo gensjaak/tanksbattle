@@ -108,8 +108,8 @@ export default class Bullet {
     let ctx = this.el.getContext('2d')
     ctx.beginPath()
     ctx.arc(25, 25, 7, 0, 2 * Math.PI)
-    ctx.strokeStyle = BaseConfig.COLORS.BULLET
-    ctx.fillStyle = BaseConfig.COLORS.BULLET
+    ctx.strokeStyle = BaseConfig.COLORS.BULLET_COLOR
+    ctx.fillStyle = BaseConfig.COLORS.BULLET_COLOR
     ctx.stroke()
     ctx.fill()
     this.container.appendChild(this.el)

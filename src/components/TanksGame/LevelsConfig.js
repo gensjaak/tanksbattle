@@ -11,7 +11,7 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         }
       ]
@@ -27,7 +27,7 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 5,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         }
       ]
@@ -43,13 +43,13 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -65,19 +65,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -93,19 +93,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -121,19 +121,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         }
       ]
@@ -149,25 +149,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -183,25 +183,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -217,25 +217,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -251,25 +251,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -283,27 +283,37 @@ export default [
       },
       teams: [
         {
+          color: BaseConfig.COLORS.FREEZER,
+          haveSpirit: true,
+          nbPlayers: 1,
+          gain: {
+            pts: 10,
+            spiritKey: BaseConfig.SPIRITS.FREEZER
+          },
+          resistance: 10
+        },
+        {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -317,27 +327,37 @@ export default [
       },
       teams: [
         {
+          color: BaseConfig.COLORS.FREEZER,
+          haveSpirit: true,
+          nbPlayers: 1,
+          gain: {
+            pts: 10,
+            spiritKey: BaseConfig.SPIRITS.FREEZER
+          },
+          resistance: 1
+        },
+        {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 4,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -353,25 +373,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 4,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 4,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -387,25 +407,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         }
       ]
@@ -421,19 +441,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         }
       ]
@@ -449,19 +469,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         }
       ]
@@ -477,19 +497,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 6
         }
       ]
@@ -505,19 +525,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 4,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -533,19 +553,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -561,19 +581,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -589,19 +609,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         }
       ]
@@ -617,28 +637,19 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 1
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
-          resistance: 3
-        },
-        {
-          color: BaseConfig.COLORS.CYAN,
-          nbPlayers: 1,
-          winPts: {
-            resistance: 1,
-            pts: 10
-          },
+          gain: 10,
           resistance: 3
         }
       ]
@@ -654,29 +665,20 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
-        },
-        {
-          color: BaseConfig.COLORS.CYAN,
-          nbPlayers: 1,
-          winPts: {
-            resistance: 2,
-            pts: 10
-          },
-          resistance: 3
         }
       ]
     }
@@ -691,29 +693,20 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 5
-        },
-        {
-          color: BaseConfig.COLORS.CYAN,
-          nbPlayers: 1,
-          winPts: {
-            resistance: 3,
-            pts: 10
-          },
-          resistance: 3
         }
       ]
     }
@@ -728,25 +721,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 3
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]
@@ -762,25 +755,25 @@ export default [
         {
           color: BaseConfig.COLORS.GREEN,
           nbPlayers: 2,
-          winPts: 10,
+          gain: 10,
           resistance: 4
         },
         {
           color: BaseConfig.COLORS.YELLOW,
           nbPlayers: 3,
-          winPts: 10,
+          gain: 10,
           resistance: 5
         },
         {
           color: BaseConfig.COLORS.RED,
           nbPlayers: 4,
-          winPts: 10,
+          gain: 10,
           resistance: 6
         },
         {
           color: BaseConfig.COLORS.PURPLE,
           nbPlayers: 1,
-          winPts: 10,
+          gain: 10,
           resistance: 2
         }
       ]

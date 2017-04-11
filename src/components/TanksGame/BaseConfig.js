@@ -4,6 +4,14 @@ export default {
     HEIGHT: 600,
     SQUARE: 50
   },
+  SPIRITS: {
+    FREEZER: 0
+  },
+  SPIRITS_CONFIG: [
+    { // FREEZER
+      ttl: 5000
+    }
+  ],
   GAME_MODES: ['Arcade', 'Survivant', 'Masochiste'],
   GAME_MODES_KEYS: {
     SURVIVAL: {
@@ -22,8 +30,8 @@ export default {
     GREEN: '#66BB6A', // Weak Team color
     YELLOW: '#FFEB3B', // Medium Team color
     PURPLE: '#3F51B5', // Dont disturb Team color
-    CYAN: '#009688', // You'll gain some combo Team color
-    BULLET: '#F9A825',
+    FREEZER: '#B2EBF2', // Freezer spirit
+    BULLET_COLOR: '#424242',
     PLAYER_COLOR: '#039BE5',
     PROTECTOR_COLOR: 'rgba(0, 0, 0, .1)'
   },
@@ -44,7 +52,8 @@ export default {
     RIGHT: 39,
     PRIMARY_FIRE: 88,
     SECONDARY_FIRE: 69,
-    BLANKSPACE: 32
+    BLANKSPACE: 32,
+    SPIRIT_LAUNCHER: 119
   },
   ACTIONS: {
     MOVE: 1,
@@ -53,7 +62,9 @@ export default {
   },
   TIME_TO_REGENERATE_RESISTANCE: 2000,
   TIME_TO_LEAVE_LEVELSHOWER: 2000,
+  TIME_TO_REARM: 500,
   TIME_FOR_PROTECT_AT_START: 500,
+  TIME_FOR_SPIRIT_TO_LEAVE: 2000,
   TIME_AFTER_RECOVERYMODE: 1000,
   IMMORTAL_PLAYER_RESISTANCE: 9999,
   GAME_INSTANCE_KEY: 'gi',

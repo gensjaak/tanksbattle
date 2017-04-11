@@ -13,7 +13,8 @@ let fixMainPlayer = false
 let TimeRecords = []
 let tmpTime
 let isPaused = false
-let shower
+let dashboard
+let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE]
 
 export default class Game {
   constructor (configP, GStorage) {
@@ -28,6 +29,8 @@ export default class Game {
     this.MainPlayerConfig.pseudo = this.config.pseudo
 
     this.Storage = GStorage
+
+    this.spiritTTL = null
 
     this._restoreGameDataFor(this.MainPlayerConfig.pseudo)
 
@@ -81,8 +84,7 @@ export default class Game {
       }
     }
 
-    shower = this._showStatus('Paused', 'Your score is up to ' + this.MainPlayerInstance.score, 'Your resistance is up to ' + this.MainPlayerConfig.resistance, () => {
-      shower.remove()
+    this._showStatus('Paused', 'Your score is up to ' + this.MainPlayerInstance.score, 'Your resistance is up to ' + this.MainPlayerConfig.resistance, () => {
       document.onkeydown = null
       this._restart()
     })
@@ -94,9 +96,9 @@ export default class Game {
       player.unfreeze()
     })
 
-    if (shower) {
-      shower.remove()
-    }
+    dashboard.remove()
+
+    this._checkGameIntegrity()
   }
 
   punchPlayersWith (BulletInstance, laserJet) {
@@ -126,7 +128,7 @@ export default class Game {
 
     // Others behaviours
     // Run away if detect MainPlayer near
-    this._botsCapability1()
+    // this._botsCapability1()
 
     // reShoot if one of my bullets is digested by MainPlayer
     // this._botsCapability2()
@@ -134,10 +136,48 @@ export default class Game {
     return this
   }
 
+  launchSpiritPower (spiritKey, caller) {
+    this._showSpiritEffects()
+    switch (spiritKey) {
+      case BaseConfig.SPIRITS.FREEZER:
+        _players.forEach((player, index) => {
+          if (player !== caller) {
+            player.forceFreeze()
+          }
+        })
+        this.spiritTTL = setTimeout(() => {
+          _players.forEach((player, index) => {
+            if (player !== caller) {
+              player.unForceFreeze()
+            }
+          })
+        }, BaseConfig.SPIRITS_CONFIG[spiritKey].ttl)
+        break
+    }
+  }
+
+  _showSpiritEffects () {
+  }
+
   _writeToStorage (pseudoP, gameModeP, scoreP, levelP, resistanceP) {
     this.Storage.set(pseudoP + '.' + gameModeP + '.' + BaseConfig.PLAYER_SCORE_KEY, scoreP)
     this.Storage.set(pseudoP + '.' + gameModeP + '.' + BaseConfig.PLAYER_EVO_KEY, levelP)
     this.Storage.set(pseudoP + '.' + gameModeP + '.' + BaseConfig.PLAYER_RESISTANCE_KEY, resistanceP)
+  }
+
+  _checkGameIntegrity () {
+    if (this._mainPlayerDied()) {
+      this._gameOver()
+    }
+
+    if (this._someOneWon()) {
+      finishedAt = new Date() - tmpTime
+      let survival = _players[0]
+
+      if (!survival.isBot) { // He won
+        this._playerWon()
+      }
+    }
   }
 
   _restoreGameDataFor (pseudoP) {
@@ -187,6 +227,7 @@ export default class Game {
   _backup () {}
 
   _startLevel (lvlKey) {
+    clearTimeout(this.spiritTTL)
     this.config.teams = LEVELS[lvlKey].config.teams
     this._showLevelInfos((parseInt(this.MainPlayerConfig.level) + 1), LEVELS[this.MainPlayerConfig.level].name, LEVELS[this.MainPlayerConfig.level].config.player.resistance, () => {
       tmpTime = new Date()
@@ -195,7 +236,7 @@ export default class Game {
   }
 
   _startMasochism () {
-    let startWith = 1
+    let startWith = 3
 
     this.MainPlayerConfig.pseudo = this.config.pseudo
     this.MainPlayerConfig.color = BaseConfig.COLORS.PLAYER_COLOR
@@ -217,7 +258,6 @@ export default class Game {
   }
 
   _addBots (nb) {
-    let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE, BaseConfig.COLORS.CYAN]
     nb = nb || Functions.rand(1, 2)
 
     if (_players.length >= 8) {
@@ -230,7 +270,7 @@ export default class Game {
         team: {
           resistance: Functions.rand(1, 6),
           color: Colors[Functions.rand(0, (Colors.length - 1))],
-          winPts: Functions.randInArray([10, 20, 30])
+          gain: Functions.randInArray([10, 20, 30])
         }
       }
       _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
@@ -238,7 +278,6 @@ export default class Game {
   }
 
   _addStrongBots (nb) {
-    let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE, BaseConfig.COLORS.CYAN]
     nb = nb || Functions.rand(1, 2)
 
     if (_players.length >= 8) {
@@ -251,7 +290,7 @@ export default class Game {
         team: {
           resistance: Functions.rand(10, 15),
           color: Colors[Functions.rand(0, (Colors.length - 1))],
-          winPts: Functions.randInArray([50, 60, 70])
+          gain: Functions.randInArray([50, 60, 70])
         }
       }
       _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
@@ -281,18 +320,10 @@ export default class Game {
   }
 
   _showLevelInfos (txt1, txt2, txt3, callback) {
-    let levelShower = document.createElement('div')
-    levelShower.style.position = 'absolute'
-    levelShower.style.top = '0'
-    levelShower.style.right = '0'
-    levelShower.style.bottom = '0'
-    levelShower.style.left = '0'
-    levelShower.style.zIndex = '99'
-    levelShower.style.backgroundColor = '#FFF'
-    levelShower.style.cursor = 'default'
+    this._createDashBoard('#FFF')
 
     let lvlIndex = document.createElement('span')
-    lvlIndex.innerText = txt1
+    lvlIndex.innerText = Functions.twoDigits(txt1)
     lvlIndex.style.display = 'block'
     lvlIndex.style.width = '100%'
     lvlIndex.style.textAlign = 'center'
@@ -329,28 +360,20 @@ export default class Game {
     lvlPlayerResistance.style.bottom = '10%'
     lvlPlayerResistance.style.fontWeight = 'bold'
 
-    levelShower.appendChild(lvlIndex)
-    levelShower.appendChild(lvlName)
-    levelShower.appendChild(lvlPlayerResistance)
+    dashboard.appendChild(lvlIndex)
+    dashboard.appendChild(lvlName)
+    dashboard.appendChild(lvlPlayerResistance)
 
-    this.config.el.appendChild(levelShower)
+    this.config.el.appendChild(dashboard)
 
     setTimeout(() => {
-      levelShower.remove()
+      dashboard.remove()
       callback()
     }, BaseConfig.TIME_TO_LEAVE_LEVELSHOWER)
   }
 
   _showLevelEnd (det, statusP, callback) {
-    let shower = document.createElement('div')
-    shower.style.position = 'absolute'
-    shower.style.top = '0'
-    shower.style.right = '0'
-    shower.style.bottom = '0'
-    shower.style.left = '0'
-    shower.style.zIndex = '99'
-    shower.style.backgroundColor = '#FFF'
-    shower.style.cursor = 'default'
+    this._createDashBoard('#FFF')
 
     let recordTime = document.createElement('span')
     recordTime.innerText = det
@@ -430,19 +453,19 @@ export default class Game {
     replayBtn.style.boxShadow = 'none'
     replayBtn.style.cursor = 'pointer'
 
-    shower.appendChild(recordTime)
-    shower.appendChild(status)
-    shower.appendChild(replayBtn)
+    dashboard.appendChild(recordTime)
+    dashboard.appendChild(status)
+    dashboard.appendChild(replayBtn)
     if (nextBtn) {
-      shower.appendChild(nextBtn)
+      dashboard.appendChild(nextBtn)
     }
 
     setTimeout(() => {
-      this.config.el.appendChild(shower)
+      this.config.el.appendChild(dashboard)
     }, 500)
 
     let __destroy = () => {
-      shower.remove()
+      dashboard.remove()
     }
 
     let __nextLevelFn = () => {
@@ -461,16 +484,23 @@ export default class Game {
     replayBtn.addEventListener('click', __replayLevelFn, false)
   }
 
+  _createDashBoard (bgColor) {
+    if (dashboard && dashboard.remove) {
+      dashboard.remove()
+    }
+    dashboard = document.createElement('div')
+    dashboard.style.position = 'absolute'
+    dashboard.style.top = '0'
+    dashboard.style.right = '0'
+    dashboard.style.bottom = '0'
+    dashboard.style.left = '0'
+    dashboard.style.zIndex = '99'
+    dashboard.style.backgroundColor = bgColor || 'rgba(0, 0, 0, 0.8)'
+    dashboard.style.cursor = 'default'
+  }
+
   _showStatus (txt1, txt2, txt3, callback) {
-    let shower = document.createElement('div')
-    shower.style.position = 'absolute'
-    shower.style.top = '0'
-    shower.style.right = '0'
-    shower.style.bottom = '0'
-    shower.style.left = '0'
-    shower.style.zIndex = '99'
-    shower.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-    shower.style.cursor = 'default'
+    this._createDashBoard()
 
     let el1 = document.createElement('span')
     el1.innerText = txt1
@@ -533,18 +563,19 @@ export default class Game {
     btn.style.boxShadow = 'none'
     btn.style.cursor = 'pointer'
 
-    shower.appendChild(el1)
-    shower.appendChild(el2)
-    shower.appendChild(el3)
-    shower.appendChild(btn)
+    Functions.empty(dashboard)
 
-    this.config.el.appendChild(shower)
+    dashboard.appendChild(el1)
+    dashboard.appendChild(el2)
+    dashboard.appendChild(el3)
+    dashboard.appendChild(btn)
+
+    this.config.el.appendChild(dashboard)
 
     btn.addEventListener('click', (event) => {
+      dashboard.remove()
       callback()
     })
-
-    return shower
   }
 
   _getMainPlayers () {
@@ -587,12 +618,7 @@ export default class Game {
   }
 
   _restart () {
-    fixMainPlayer = false
-    _players.forEach((player) => {
-      player.destroy()
-    })
-    _players = []
-
+    this._destroyAll()
     switch (this.config.mode) {
       case BaseConfig.GAME_MODES[0]: // Arcade
         this._startLevel(this.MainPlayerConfig.level)
@@ -604,6 +630,23 @@ export default class Game {
         this._startMasochism()
         break
     }
+  }
+
+  _destroyAll () {
+    fixMainPlayer = false
+    _players.forEach((player) => {
+      player.destroy()
+    })
+    _players = []
+  }
+
+  _destroyBots () {
+    _players.forEach((player) => {
+      if (player.isBot) {
+        player.destroy()
+      }
+    })
+    _players = this._getMainPlayers()
   }
 
   _someOneWon () {
@@ -621,6 +664,7 @@ export default class Game {
       this.MainPlayerConfig.score = this.MainPlayerConfig.score
       this.MainPlayerConfig.resistance = this.MainPlayerConfig.resistance
 
+      this._destroyBots()
       this._writeToStorage(this.MainPlayerConfig.pseudo, this.MainPlayerConfig.gameMode, this.MainPlayerConfig.score, this.MainPlayerConfig.level, this.MainPlayerConfig.resistance)
       this._startLevel(this.MainPlayerConfig.level)
     })
@@ -638,40 +682,44 @@ export default class Game {
   }
 
   _punch (BulletInstance, PlayerInstance) {
-    if (BulletInstance.shooter.isBot !== PlayerInstance.isBot) {
+    if (BulletInstance.shooter && (BulletInstance.shooter.isBot !== PlayerInstance.isBot)) {
       if (PlayerInstance.getPunched(BulletInstance)) {
         _players = Functions.removeAt(_players, _players.indexOf(PlayerInstance))
 
         if (!BulletInstance.shooter.isBot) {
-          BulletInstance.shooter.updateScore(PlayerInstance.team.winPts)
+          if (PlayerInstance.team.haveSpirit) {
+            BulletInstance.shooter.updateScore(PlayerInstance.team.gain.pts)
+
+            PlayerInstance.unleashSpirit()
+          } else {
+            BulletInstance.shooter.updateScore(PlayerInstance.team.gain)
+          }
           this.MainPlayerConfig.score = this.MainPlayerInstance.score
         }
 
-        switch (this.config.mode) {
-          case BaseConfig.GAME_MODES[0]: // Arcade
-            if (this._someOneWon() || this._mainPlayerDied()) {
-              finishedAt = new Date() - tmpTime
-              let survival = _players[0]
+        if (this._mainPlayerDied()) {
+          finishedAt = new Date() - tmpTime
+          this._freezeMainPlayer()
+          this._gameOver()
+        } else {
+          switch (this.config.mode) {
+            case BaseConfig.GAME_MODES[0]: // Arcade
+              if (this._someOneWon()) {
+                finishedAt = new Date() - tmpTime
+                let survival = _players[0]
 
-              if (survival.isBot) { // Game over
-                this._gameOver()
-              } else { // He won
-                this._playerWon()
+                if (!survival.isBot) { // He won
+                  this._playerWon()
+                }
               }
-            }
-            break
-          case BaseConfig.GAME_MODES[1]: // Survival
-            this._addBots()
-            if (this._mainPlayerDied()) {
-              this._gameOver()
-            }
-            break
-          case BaseConfig.GAME_MODES[2]: // Masochist
-            this._addStrongBots()
-            if (this._mainPlayerDied()) {
-              this._gameOver()
-            }
-            break
+              break
+            case BaseConfig.GAME_MODES[1]: // Survival
+              this._addBots()
+              break
+            case BaseConfig.GAME_MODES[2]: // Masochist
+              this._addStrongBots()
+              break
+          }
         }
       }
     }
