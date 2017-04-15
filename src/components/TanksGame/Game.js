@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-extra-bind */
 
-import Functions from './Functions.js'
-import BaseConfig from './BaseConfig.js'
+import Functions from './Functions'
+import BaseConfig from './BaseConfig'
 import Player from './Player'
-import Spirit from './Spirit.js'
+import Spirit from './Spirit'
 import LEVELS from './LevelsConfig'
 
 let _players = []
@@ -20,7 +20,7 @@ let dashboard
 let Colors = [BaseConfig.COLORS.RED, BaseConfig.COLORS.GREEN, BaseConfig.COLORS.YELLOW, BaseConfig.COLORS.PURPLE]
 
 export default class Game {
-  constructor (configP, GStorage) {
+  constructor (configP, GStorage, GrizzlyInstanceP) {
     this.config = configP
 
     this.config.el = document.getElementById(this.config.el.toString().trim())
@@ -31,24 +31,37 @@ export default class Game {
     this.MainPlayerConfig.color = BaseConfig.COLORS.PLAYER_COLOR
     this.MainPlayerConfig.pseudo = this.config.pseudo
 
-    this.Storage = GStorage
-
     this.spiritTTL = null
 
-    this._restoreGameDataFor(this.MainPlayerConfig.pseudo)
+    if (this.config.online) {
+      this.GrizzlyInstance = GrizzlyInstanceP
+      this._showGetReadyGang({
+        pseudo: this.config.pseudo,
+        color: this.config.player.color,
+        resistance: this.config.player.resistance
+      }, () => {
+        this._getOnlinePlayers((response) => {
+          this.OnlinePlayers = response
+        })
+      })
+    } else {
+      this.Storage = GStorage
 
-    switch (this.config.mode) {
-      case BaseConfig.GAME_MODES[0]: // Arcade
-        this._startLevel(this.MainPlayerConfig.level)
-        break
-      case BaseConfig.GAME_MODES[1]: // Survival
-        this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.SURVIVAL.KEY
-        this._startSurvival()
-        break
-      case BaseConfig.GAME_MODES[2]: // Masochisme
-        this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.MASOCHISME.KEY
-        this._startMasochism()
-        break
+      this._restoreGameDataFor(this.MainPlayerConfig.pseudo)
+
+      switch (this.config.mode) {
+        case BaseConfig.GAME_MODES[0]: // Arcade
+          this._startLevel(this.MainPlayerConfig.level)
+          break
+        case BaseConfig.GAME_MODES[1]: // Survival
+          this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.SURVIVAL.KEY
+          this._startSurvival()
+          break
+        case BaseConfig.GAME_MODES[2]: // Masochisme
+          this.MainPlayerConfig.level = BaseConfig.GAME_MODES_KEYS.MASOCHISME.KEY
+          this._startMasochism()
+          break
+      }
     }
   }
 
@@ -140,6 +153,15 @@ export default class Game {
     // this._botsCapability2()
 
     return this
+  }
+
+  _getOnlinePlayers (callback) {
+    this.GrizzlyInstance.send('players', {
+      room: this.config.room
+    }, (response) => {
+      console.log(response)
+      callback(response)
+    })
   }
 
   _launchSpiritPower (spiritKey, caller) {
@@ -393,6 +415,23 @@ export default class Game {
       }
       _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
     }
+
+    let addSpiritKeeper = Functions.rand(0, 1)
+    if (addSpiritKeeper === 1) {
+      let randomConfig = {
+        botId: 'TANK_' + (_players.length),
+        team: {
+          haveSpirit: true,
+          resistance: Functions.rand(6, 10),
+          color: BaseConfig.COLORS.FREEZER,
+          gain: {
+            pts: Functions.randInArray([10, 20, 30]),
+            spiritKey: BaseConfig.SPIRITS.FREEZER
+          }
+        }
+      }
+      _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
+    }
   }
 
   _addStrongBots (nb) {
@@ -409,6 +448,23 @@ export default class Game {
           resistance: Functions.rand(10, 15),
           color: Colors[Functions.rand(0, (Colors.length - 1))],
           gain: Functions.randInArray([50, 60, 70])
+        }
+      }
+      _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
+    }
+
+    let addSpiritKeeper = Functions.rand(0, 1)
+    if (addSpiritKeeper === 1) {
+      let randomConfig = {
+        botId: 'TANK_' + (_players.length),
+        team: {
+          haveSpirit: true,
+          resistance: Functions.rand(8, 10),
+          color: BaseConfig.COLORS.FREEZER,
+          gain: {
+            pts: Functions.randInArray([10, 20, 30]),
+            spiritKey: BaseConfig.SPIRITS.FREEZER
+          }
         }
       }
       _players.push(new Player(this, randomConfig.botId, randomConfig.team, this.config.el, true))
@@ -435,6 +491,92 @@ export default class Game {
     this._showLevelInfos('', 'Survival mode', BaseConfig.GAME_MODES_KEYS.SURVIVAL.PLAYER_RESISTANCE, () => {
       this.inflateBehaviours()
     })
+  }
+
+  _showGetReadyGang (args, callback) {
+    this._createDashBoard('#FFF')
+
+    dashboard.style.display = 'flex'
+    dashboard.style.justifyContent = 'center'
+
+    let lvlIndex = document.createElement('span')
+    lvlIndex.style.display = 'block'
+    lvlIndex.style.width = '100%'
+    lvlIndex.style.textAlign = 'center'
+    lvlIndex.style.fontSize = '3em'
+    lvlIndex.style.fontFamily = 'fantasy'
+    lvlIndex.style.margin = '10% 0'
+    lvlIndex.style.color = '#607D8B'
+    lvlIndex.style.marginBottom = '0'
+    lvlIndex.style.lineHeight = '1'
+    lvlIndex.innerText = args.pseudo
+
+    let playerlogo = document.createElement('canvas')
+    let w = 100
+    let h = 100
+    let crop = (w * 30) / 100
+    playerlogo.width = w
+    playerlogo.height = h
+    playerlogo.style.borderRadius = '0'
+    playerlogo.style.alignSelf = 'center'
+    playerlogo.style.boxShadow = args.color + ' 0px 10px 20px -5px'
+    playerlogo.style.position = 'absolute'
+    playerlogo.style.overflow = 'visible'
+    playerlogo.style.border = '5px solid #FFF'
+    playerlogo.style.borderTop = 'none'
+    let ctx = playerlogo.getContext('2d')
+    ctx.fillStyle = args.color
+    ctx.fillRect(0, 0, w, h)
+    ctx.clearRect(0, 0, crop, crop)
+    ctx.clearRect(w - crop, 0, crop, crop)
+
+    let lvlPlayerResistance = document.createElement('span')
+    lvlPlayerResistance.innerText = 'Your resistance is up to ' + args.resistance
+    lvlPlayerResistance.style.display = 'block'
+    lvlPlayerResistance.style.width = '100%'
+    lvlPlayerResistance.style.textAlign = 'center'
+    lvlPlayerResistance.style.fontSize = '1.5em'
+    lvlPlayerResistance.style.fontFamily = 'sans-serif'
+    lvlPlayerResistance.style.margin = '0'
+    lvlPlayerResistance.style.color = '#F44336'
+    lvlPlayerResistance.style.position = 'absolute'
+    lvlPlayerResistance.style.bottom = '30%'
+    lvlPlayerResistance.style.fontWeight = 'bold'
+
+    let nextBtn = document.createElement('button')
+    nextBtn.innerText = 'ready to go'
+    nextBtn.style.display = 'inline-block'
+    nextBtn.style.width = '80%'
+    nextBtn.style.textAlign = 'center'
+    nextBtn.style.fontSize = '1em'
+    nextBtn.style.fontFamily = 'sans-serif'
+    nextBtn.style.margin = '0 10%'
+    nextBtn.style.color = '#FFF'
+    nextBtn.style.position = 'absolute'
+    nextBtn.style.bottom = '10%'
+    nextBtn.style.right = '0'
+    nextBtn.style.fontWeight = 'bold'
+    nextBtn.style.height = '70px'
+    nextBtn.style.border = 'none'
+    nextBtn.style.background = '#41B883'
+    nextBtn.style.textTransform = 'lowercase'
+    nextBtn.style.fontVariant = 'small-caps'
+    nextBtn.style.borderRadius = '50px'
+    nextBtn.style.outline = 'none'
+    nextBtn.style.boxShadow = 'none'
+    nextBtn.style.cursor = 'pointer'
+
+    dashboard.appendChild(lvlIndex)
+    dashboard.appendChild(playerlogo)
+    dashboard.appendChild(lvlPlayerResistance)
+    dashboard.appendChild(nextBtn)
+
+    nextBtn.addEventListener('click', () => {
+      dashboard.remove()
+      callback()
+    })
+
+    this.config.el.appendChild(dashboard)
   }
 
   _showLevelInfos (txt1, txt2, txt3, callback) {

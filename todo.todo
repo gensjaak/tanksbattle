@@ -13,7 +13,7 @@
 
 +--- Intégrer les levels (Level 1, 2, 3, ...) avec leurs difficultés
 
---- Multiplayer
+--- Multiplayer: First player get connected to the server, creates a room. I register this new room token to a socket.IO.rooms and push it in the array of rooms. Next players will get list of this room and can decide to join it or create a new one.
   -- Arcade
     - Players can create team composed by 3 co-workers in addition
     - Players can work together against bots

@@ -1,6 +1,6 @@
 {
   "name": "tanksbattle",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "HTML5 Game in which tanks are in battle",
   "author": "phareal <akakpo.jeanjacques@gmail.com>",
   "private": true,
@@ -14,7 +14,8 @@
     "sass-loader": "^6.0.3",
     "vue": "^2.2.1",
     "vue-router": "^2.2.0",
-    "vuex": "^2.2.1"
+    "vuex": "^2.2.1",
+    "socket.io": "1.4.5"
   },
   "keywords": [
     "Tanks",

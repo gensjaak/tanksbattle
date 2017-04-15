@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 
-import Functions from './Functions.js'
-import Bullet from './Bullet.js'
-import BaseConfig from './BaseConfig.js'
-import Spirit from './Spirit.js'
+import Functions from './Functions'
+import Bullet from './Bullet'
+import BaseConfig from './BaseConfig'
+import Spirit from './Spirit'
 
 let _positions = []
 let isLocked = false
