@@ -338,7 +338,7 @@ export default class Game {
       // Charger les autres données en fonction du mode de jeu choisi
       this.MainPlayerConfig.score = this.Storage.get(this.MainPlayerConfig.pseudo + '.' + this.MainPlayerConfig.gameMode + '.' + BaseConfig.PLAYER_SCORE_KEY)
       this.MainPlayerConfig.level = this.Storage.get(this.MainPlayerConfig.pseudo + '.' + this.MainPlayerConfig.gameMode + '.' + BaseConfig.PLAYER_EVO_KEY)
-      this.MainPlayerConfig.resistance = this.Storage.get(this.MainPlayerConfig.pseudo + '.' + this.MainPlayerConfig.gameMode + '.' + BaseConfig.PLAYER_RESISTANCE_KEY)
+      this.MainPlayerConfig.resistance = LEVELS[this.MainPlayerConfig.level].config.player.resistance
     } else {
       // Ce pseudoP n'a jamais été utilisé
       // Créer un utilisateur avec des données de jeu de base
